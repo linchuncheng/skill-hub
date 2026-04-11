@@ -1,0 +1,6 @@
+{
+  "name": "Agent浏览器",
+  "description": "浏览器自动化工具。支持打开网站、填写表单、点击按钮、截图、抓取数据、测试 Web 应用、登录网站或执行浏览器自动化任务。",
+  "normalizedName": "agent-browser",
+  "category": "工具"
+}

@@ -1,0 +1,183 @@
+<svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg" style="background-color: white;">
+<defs>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.15"/>
+  </filter>
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; fill: #1a1a1a; }
+    .th { font-size: 14px; font-weight: 500; }
+    .ts { font-size: 12px; font-weight: 400; }
+    .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; }
+    .c-gray text { fill: #444441; }
+    .c-blue rect { fill: #E6F1FB; stroke: #185FA5; }
+    .c-blue text { fill: #0C447C; }
+    .c-teal rect { fill: #E1F5EE; stroke: #0F6E56; }
+    .c-teal text { fill: #085041; }
+    .c-purple rect { fill: #EEEDFE; stroke: #534AB7; }
+    .c-purple text { fill: #3C3489; }
+    .c-amber rect { fill: #FAEEDA; stroke: #854F0B; }
+    .c-amber text { fill: #633806; }
+    .c-coral rect { fill: #FAECE7; stroke: #993C1D; }
+    .c-coral text { fill: #712B13; }
+    .c-red rect { fill: #FCEBEB; stroke: #A32D2D; }
+    .c-red text { fill: #791F1F; }
+    
+    /* 动画定义 */
+    .layer-frame {
+      opacity: 0;
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    .component-card {
+      opacity: 0;
+      transform-origin: center;
+      animation: popIn 0.4s ease-out forwards;
+    }
+    
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .connector-line {
+      opacity: 0;
+      animation: fadeInLine 0.4s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    
+    @keyframes fadeInLine {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    .legend {
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out 1.5s forwards;
+    }
+  </style>
+</defs>
+
+<text class="th" x="340" y="24" text-anchor="middle" dominant-baseline="central" font-size="15">数据流图模板</text>
+
+<!-- 数据源层 -->
+<g class="layer-frame" style="animation-delay: 0s">
+  <line x1="30" y1="50" x2="280" y2="50" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+  <text class="ts" x="340" y="50" text-anchor="middle" dominant-baseline="central" font-weight="500">数据源</text>
+  <line x1="400" y1="50" x2="650" y2="50" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+</g>
+
+<g class="component-card c-gray" filter="url(#shadow)" style="animation-delay: 0.1s">
+  <rect x="52" y="62" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="122" y="78" text-anchor="middle" dominant-baseline="central">MySQL</text>
+  <text class="ts" x="122" y="96" text-anchor="middle" dominant-baseline="central">业务数据库</text>
+</g>
+<g class="component-card c-gray" filter="url(#shadow)" style="animation-delay: 0.15s">
+  <rect x="212" y="62" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="282" y="78" text-anchor="middle" dominant-baseline="central">日志文件</text>
+  <text class="ts" x="282" y="96" text-anchor="middle" dominant-baseline="central">应用日志</text>
+</g>
+<g class="component-card c-gray" filter="url(#shadow)" style="animation-delay: 0.2s">
+  <rect x="372" y="62" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="442" y="78" text-anchor="middle" dominant-baseline="central">消息队列</text>
+  <text class="ts" x="442" y="96" text-anchor="middle" dominant-baseline="central">RocketMQ</text>
+</g>
+<g class="component-card c-gray" filter="url(#shadow)" style="animation-delay: 0.25s">
+  <rect x="532" y="62" width="96" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="580" y="78" text-anchor="middle" dominant-baseline="central">API</text>
+  <text class="ts" x="580" y="96" text-anchor="middle" dominant-baseline="central">第三方</text>
+</g>
+
+<!-- 数据采集/处理层 -->
+<g class="layer-frame" style="animation-delay: 0.3s">
+  <line x1="30" y1="124" x2="250" y2="124" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+  <text class="ts" x="340" y="124" text-anchor="middle" dominant-baseline="central" font-weight="500">数据采集与处理</text>
+  <line x1="430" y1="124" x2="650" y2="124" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+</g>
+
+<g class="component-card c-blue" filter="url(#shadow)" style="animation-delay: 0.4s">
+  <rect x="52" y="136" width="186" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="145" y="152" text-anchor="middle" dominant-baseline="central">CDC 采集</text>
+  <text class="ts" x="145" y="170" text-anchor="middle" dominant-baseline="central">Canal / Debezium</text>
+</g>
+<g class="component-card c-teal" filter="url(#shadow)" style="animation-delay: 0.45s">
+  <rect x="262" y="136" width="156" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="340" y="152" text-anchor="middle" dominant-baseline="central">ETL 处理</text>
+  <text class="ts" x="340" y="170" text-anchor="middle" dominant-baseline="central">清洗/转换/聚合</text>
+</g>
+<g class="component-card c-purple" filter="url(#shadow)" style="animation-delay: 0.5s">
+  <rect x="438" y="136" width="190" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="533" y="152" text-anchor="middle" dominant-baseline="central">流处理</text>
+  <text class="ts" x="533" y="170" text-anchor="middle" dominant-baseline="central">Flink / Kafka Streams</text>
+</g>
+
+<!-- 数据存储层 -->
+<g class="layer-frame" style="animation-delay: 0.55s">
+  <line x1="30" y1="202" x2="280" y2="202" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+  <text class="ts" x="340" y="202" text-anchor="middle" dominant-baseline="central" font-weight="500">数据存储</text>
+  <line x1="400" y1="202" x2="650" y2="202" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+</g>
+
+<g class="component-card c-amber" filter="url(#shadow)" style="animation-delay: 0.65s">
+  <rect x="52" y="214" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="122" y="230" text-anchor="middle" dominant-baseline="central">数据仓库</text>
+  <text class="ts" x="122" y="248" text-anchor="middle" dominant-baseline="central">Hive / ClickHouse</text>
+</g>
+<g class="component-card c-coral" filter="url(#shadow)" style="animation-delay: 0.7s">
+  <rect x="212" y="214" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="282" y="230" text-anchor="middle" dominant-baseline="central">实时存储</text>
+  <text class="ts" x="282" y="248" text-anchor="middle" dominant-baseline="central">Redis / HBase</text>
+</g>
+<g class="component-card c-red" filter="url(#shadow)" style="animation-delay: 0.75s">
+  <rect x="372" y="214" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="442" y="230" text-anchor="middle" dominant-baseline="central">对象存储</text>
+  <text class="ts" x="442" y="248" text-anchor="middle" dominant-baseline="central">OSS / S3</text>
+</g>
+<g class="component-card c-teal" filter="url(#shadow)" style="animation-delay: 0.8s">
+  <rect x="532" y="214" width="96" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="580" y="230" text-anchor="middle" dominant-baseline="central">搜索引擎</text>
+  <text class="ts" x="580" y="248" text-anchor="middle" dominant-baseline="central">ES</text>
+</g>
+
+<!-- 存储层横向连线 -->
+<line class="connector-line" x1="192" y1="239" x2="212" y2="239" stroke="#888780" stroke-width="1" stroke-opacity="0.3" style="animation-delay: 0.85s"/>
+<line class="connector-line" x1="352" y1="239" x2="372" y2="239" stroke="#888780" stroke-width="1" stroke-opacity="0.3" style="animation-delay: 0.85s"/>
+<line class="connector-line" x1="512" y1="239" x2="532" y2="239" stroke="#888780" stroke-width="1" stroke-opacity="0.3" style="animation-delay: 0.85s"/>
+
+<!-- 数据消费层 -->
+<g class="layer-frame" style="animation-delay: 0.85s">
+  <line x1="30" y1="276" x2="280" y2="276" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+  <text class="ts" x="340" y="276" text-anchor="middle" dominant-baseline="central" font-weight="500">数据消费</text>
+  <line x1="400" y1="276" x2="650" y2="276" stroke="#888780" stroke-width="0.8" stroke-opacity="0.3"/>
+</g>
+
+<g class="component-card c-blue" filter="url(#shadow)" style="animation-delay: 0.95s">
+  <rect x="52" y="288" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="122" y="304" text-anchor="middle" dominant-baseline="central">报表系统</text>
+  <text class="ts" x="122" y="322" text-anchor="middle" dominant-baseline="central">BI 可视化</text>
+</g>
+<g class="component-card c-purple" filter="url(#shadow)" style="animation-delay: 1.0s">
+  <rect x="212" y="288" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="282" y="304" text-anchor="middle" dominant-baseline="central">数据服务</text>
+  <text class="ts" x="282" y="322" text-anchor="middle" dominant-baseline="central">API 接口</text>
+</g>
+<g class="component-card c-teal" filter="url(#shadow)" style="animation-delay: 1.05s">
+  <rect x="372" y="288" width="140" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="442" y="304" text-anchor="middle" dominant-baseline="central">机器学习</text>
+  <text class="ts" x="442" y="322" text-anchor="middle" dominant-baseline="central">模型训练</text>
+</g>
+<g class="component-card c-amber" filter="url(#shadow)" style="animation-delay: 1.1s">
+  <rect x="532" y="288" width="96" height="50" rx="8" stroke-width="0.5"/>
+  <text class="th" x="580" y="304" text-anchor="middle" dominant-baseline="central">监控告警</text>
+  <text class="ts" x="580" y="322" text-anchor="middle" dominant-baseline="central">实时</text>
+</g>
+
+<!-- 图例 -->
+<g class="legend">
+  <line x1="52" y1="360" x2="628" y2="360" stroke="#888780" stroke-width="0.5" stroke-dasharray="4 3" stroke-opacity="0.35"/>
+  <text class="ts" x="340" y="378" text-anchor="middle" dominant-baseline="central" fill="#666">数据流向：采集 → 处理 → 存储 → 消费</text>
+</g>
+
+</svg>
