@@ -1,6 +1,0 @@
-{
-  "name": "AI代码评审",
-  "description": "提供渐进式、领域化的AI代码评审技能，可集成到CI/CD流程中",
-  "normalizedName": "ai-review",
-  "category": "开发"
-}
