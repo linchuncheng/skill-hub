@@ -1,0 +1,6 @@
+{
+  "name": "MySQL技能",
+  "description": "MySQL 数据库操作技能。基于 Python + pymysql，支持数据查询、增删改、事务控制、表结构查看等操作。",
+  "normalizedName": "agent-mysql",
+  "category": "开发"
+}
