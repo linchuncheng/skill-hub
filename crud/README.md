@@ -1,4 +1,4 @@
-# MySQL 数据库操作技能
+# 数据库CRUD技能
 
 让 AI 助手帮你轻松操作 MySQL 数据库，无需编写复杂代码。
 
@@ -13,8 +13,8 @@
 ## 💡 使用示例
 
 直接对 AI 助手说：
-- "查询最近7天的订单"
-- "看看用户表有哪些字段"
+- "/crud 查询最近7天的订单"
+- "/crud 看看用户表有哪些字段"
 - "把订单状态改为已完成"
 - "导出上个月的销售数据"
 
@@ -26,7 +26,7 @@ python3 -m pip install pymysql
 ```
 
 **2. 配置数据库连接**
-创建 `~/.config/agent-mysql/config.json`：
+创建 `~/.config/crud/config.json`：
 ```json
 {"current": "local", "local": {"host": "localhost", "port": 3306, "user": "root", "password": "你的密码", "database": "数据库名"}}
 ```
@@ -36,7 +36,3 @@ python3 -m pip install pymysql
 - 密码配置文件存储，不在代码中暴露
 - 自动使用参数化查询，防止 SQL 注入
 - 查询操作建议使用只读账号
-
-## 📚 高级功能
-
-完整示例和详细文档请查看 [SKILL.md](SKILL.md)
