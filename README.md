@@ -7,6 +7,7 @@
 | 技能名称 | 功能简介 |
 |---------|---------|
 | [agent-browser](agent-browser/) | 浏览器自动化工具，支持网页操作、数据抓取、截图、表单填写等自动化任务 |
+| [ai-writer](ai-writer/) | 公众号文章创作、改写、排版与发布一体化流程 |
 | [dba](dba/) | 数据库操作工具，支持MySQL和PostgreSQL的数据查询、增删改、事务控制和SQL执行 |
 | [dbmate](dbmate/) | 数据库迁移工具，支持多模块动态发现、环境配置管理、迁移和回滚操作 |
 | [diagram](diagram/) | 绘制各种类型的动态SVG图，包括系统架构图、调用链路图、部署架构图、领域模型图等 |
@@ -55,17 +56,3 @@ cp -r dba diagram project-boot ~/.cursor/skills/
 ### 4. 验证安装
 
 重启你的AI工具，在对话中触发对应的技能即可使用。每个技能的 `SKILL.md` 文件中都定义了触发词和使用场景。
-
-## 目录结构
-
-```
-skill-hub/
-├── agent-browser/     # 浏览器自动化
-├── dba/               # 数据库操作
-├── dbmate/            # 数据库迁移
-├── diagram/           # 技术图表绘制
-├── project-boot/      # 项目脚手架生成
-├── skill-analyze/     # 技能执行分析
-├── skill-check/       # 技能质量审查
-└── skill-create/      # 技能创建引导
-```
