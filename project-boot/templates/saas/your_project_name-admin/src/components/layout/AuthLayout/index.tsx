@@ -1,3 +1,4 @@
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { FC, PropsWithChildren } from 'react';
 import styles from './index.module.scss';
 
@@ -29,6 +30,9 @@ const GradientBg = () => (
 );
 
 const AuthLayout: FC<PropsWithChildren> = ({ children }) => {
+  // 启用动态页面标题和 favicon
+  useDocumentTitle();
+
   return (
     <div className={styles.container}>
       {/* 左侧品牌区 - 企业级专业风格 */}

@@ -6,6 +6,7 @@ interface TenantInfo {
   name: string;
   code: string;
   status: number;
+  logo?: string;  // 租户 Logo URL
   [key: string]: any;
 }
 

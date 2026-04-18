@@ -1,5 +1,6 @@
 import { routes } from '@/config/routes';
 import { useAuth } from '@/hooks/useAuth';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useThemeContext } from '@/providers/ThemeProvider';
 import { useGlobalStore } from '@/stores/globalStore';
 import { useTenantStore } from '@/stores/tenantStore';
@@ -163,6 +164,9 @@ const getIcon = (iconName?: string): ReactNode => {
 };
 
 const BasicLayout: FC = () => {
+  // 启用动态页面标题和 favicon
+  useDocumentTitle();
+
   const navigate = useNavigate();
   const location = useLocation();
   const { user, menus, logout } = useAuth();
