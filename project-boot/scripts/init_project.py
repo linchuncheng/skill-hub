@@ -315,7 +315,7 @@ def validate_project(project_path: str, group_name: str, project_name: str) -> L
     if docker_compose.exists():
         with open(docker_compose, 'r', encoding='utf-8') as f:
             content = f.read()
-            if 'your_group_name_your_project_name' in content:
+            if 'your_group_name' in content:
                 issues.append("docker-compose.yml 中数据库名称仍包含占位符")
     
     return issues

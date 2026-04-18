@@ -104,7 +104,7 @@ python3 project-boot/scripts/init_project.py \
 | Maven 配置 | `your_project_name` → `fengqun-fms` |
 | Java 包名 | `com.your_group_name.your_project_name.*` → `com.fengqun.fms.*` |
 | 模块目录 | `your_project_name-api` → `fms-api` |
-| 数据库名 | `your_group_name_your_project_name` → `fengqun_fms` |
+| 数据库名 | `your_group_name` → `fengqun` |
 | Docker 容器 | `your_project_name-infra-mysql` → `fengqun-infra-mysql` |
 
 ## 可用模板
