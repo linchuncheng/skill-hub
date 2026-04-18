@@ -17,12 +17,44 @@
 
 ## 使用方式
 
-每个技能目录包含：
-- `SKILL.md` - 技能核心文档，包含工作流和使用说明
-- `scripts/` - 可执行脚本（如需要）
-- `references/` - 参考文档（如需要）
-- `assets/` - 资源文件（如需要）
-- `manifest.json` - 技能元数据（可选）
+### 1. 下载技能库
+
+```bash
+git clone https://gitee.com/your-username/skill-hub.git
+cd skill-hub
+```
+
+### 2. 选择需要的技能
+
+浏览本README上方的技能列表，找到你需要的技能目录，例如 `agent-browser/`、`dba/` 等。
+
+### 3. 复制到你的AI工具
+
+不同AI工具的技能目录位置不同，将技能文件夹复制到对应位置：
+
+| AI工具 | 技能存放路径 |
+|--------|-------------|
+| **Claude Code** | `.claude/skills/<skill-name>/` (项目级别) 或 `~/.claude/skills/<skill-name>/` (全局) |
+| **Cursor** | `.cursor/skills/<skill-name>/` (项目级别) 或 `~/.cursor/skills/<skill-name>/` (全局) |
+| **Qoder** | `.qoder/skills/<skill-name>/` (项目级别) 或 `~/.qoder/skills/<skill-name>/` (全局) |
+| **QoderWork** | `~/.qoderwork/skills/<skill-name>/` (全局) |
+| **OpenClaw** | `~/.openclaw/skills/<skill-name>/` (全局) |
+
+**示例：复制 dba 技能到 Qoder**
+
+```bash
+cp -r dba ~/.qoder/skills/dba
+```
+
+**示例：复制多个技能到 Cursor**
+
+```bash
+cp -r dba diagram project-boot ~/.cursor/skills/
+```
+
+### 4. 验证安装
+
+重启你的AI工具，在对话中触发对应的技能即可使用。每个技能的 `SKILL.md` 文件中都定义了触发词和使用场景。
 
 ## 目录结构
 
