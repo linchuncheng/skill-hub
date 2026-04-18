@@ -20,7 +20,7 @@
 ### 1. 下载技能库
 
 ```bash
-git clone https://gitee.com/your-username/skill-hub.git
+git clone https://gitee.com/jensvn/skill-hub.git
 cd skill-hub
 ```
 
