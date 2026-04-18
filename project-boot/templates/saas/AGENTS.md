@@ -51,28 +51,20 @@ public void scheduledTask() {
 
 **检查服务**：`lsof -i :端口 | grep LISTEN`
 
-**网关启动方式**（JAR 模式，单进程，不用 mvn）：
-```bash
-# 构建网关 JAR（仅在网关代码变更时执行）
-mvn package -pl your_project_name-gateway -DskipTests -q
-
-# 启动网关
-nohup java -jar your_project_name-gateway/target/your_project_name-gateway-1.0.0-SNAPSHOT.jar --spring.profiles.active=dev > /dev/null 2>&1 & disown
-```
-
 **重启业务服务**：
 ```bash
-# 1. 重启业务服务
-lsof -ti:8084 | xargs kill -9 && cd your_project_name-server && nohup mvn spring-boot:run > /dev/null 2>&1 &
+# 1. 停止旧进程（必须加 -sTCP:LISTEN，否则会杀死连接该端口的网关等客户端进程）
+lsof -ti:8084 -sTCP:LISTEN | xargs kill -9
 
-# 2. 等待服务启动
-sleep 10 && lsof -i :8084 | grep LISTEN
+# 2. 启动服务
+cd 后端java工程 && nohup mvn spring-boot:run > /dev/null 2>&1 &
+
+# 3. 等待服务启动
+sleep 30 && lsof -i :8084 | grep LISTEN
 ```
 
 **注意事项**：
-- **网关必须用 `java -jar` 启动**，禁止用 `mvn spring-boot:run`（Maven 会 fork 子进程，终端会话清理时会导致网关异常退出）
-- **重启业务服务时，不需要重启网关**（网关使用 RestTemplate 无状态转发，下游服务重启后自动恢复）
-- 遇到 `Network Error` 时，先检查目标服务是否启动完成，再检查网关（8080）
+- **kill 服务时必须加 `-sTCP:LISTEN`**：`lsof -ti:PORT -sTCP:LISTEN | xargs kill -9`，否则 `lsof -ti:PORT` 会返回所有连接该端口的进程（包括网关等客户端），导致误杀
 
 ### 5. 租户拦截器注意事项
 
@@ -102,14 +94,15 @@ try {
 
 | 问题 | 检查方法 |
 |------|----------|
-| Network Error | 检查目标服务是否启动完成 → 检查网关（8080） → 查看日志 |
+| NetworkError | 检查目标服务是否启动完成 → 检查网关（8080） → 查看日志 |
 | 数据查不到 | SQL 日志中是否有 `tenant_id = '0'` |
 | 权限不足 | `SELECT * FROM sys_permission WHERE permission_code = 'xxx'` |
 | 前端按钮不显示 | 检查 `sys_permission` 表 → 使用 `dbmate` SKILL创建迁移SQL → 重启 Platform → 重新登录 |
 | Dubbo服务找不到 | 检查提供者是否启动并注册到 Nacos |
 | 定时任务数据异常 | 检查 TenantContext 是否正确设置/clear，是否使用了 skip() |
 | 时间格式带T | 后端JacksonConfig已统一配置，VO直接返回LocalDateTime/LocalDate，禁止手动.toString() |
-| 数据库操作 | 本地若没有安装mysql，请使用SKILL:/dba访问数据库，禁止使用mysql命令 |
+| 数据库DML操作 | 优先使用dba技能访问数据库，其次使用mysql命令（本地可能没有安装mysql） |
+| 数据库DDL操作 | 在工程根目录的sql目录下编写DDL，注意不同系统写入子目录不一样，写完后使用`dbmate`技能执行，不要直接用/dba技能执行 |
 
 ---
 
@@ -125,8 +118,8 @@ try {
 
 **禁止**：
 1. 跳过测试直接写实现
-2. 手动执行 SQL 改表结构
-3. 假设服务在运行（操作前先检查）
-4. 使用SKILL: /dbmate 执行数据库DDL
-5. 在定时任务中手动管理租户拦截器开关（必须使用 skip() 函数式）
-6. 忽略 TenantContext 的生命周期管理（必须 try-finally 或 skip() 自动管理）
+1. 假设服务在运行（操作前先检查）
+2. 使用dba技能执行数据库DDL
+3. 在定时任务中手动管理租户拦截器开关（必须使用 skip() 函数式）
+4. 忽略 TenantContext 的生命周期管理（必须 try-finally 或 skip() 自动管理）
+5. 使用 `lsof -ti:PORT` 不加 `-sTCP:LISTEN` 来杀服务（会误杀网关等客户端进程）
