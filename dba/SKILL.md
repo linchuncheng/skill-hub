@@ -1,0 +1,285 @@
+---
+name: dba
+description: DB操作工具。支持 MySQL 和 PostgreSQL，支持数据查询、增删改、事务控制、表结构查看、SQL 执行、JSON 输出。触发词：MySQL、PostgreSQL、数据库查询、SQL 执行、查表、数据增删改、查看表结构、EXPLAIN 分析、数据库连接
+---
+
+# DB操作
+
+通过 `run_sql.py` 脚本直接执行 SQL，支持 **MySQL** 和 **PostgreSQL** 两种数据库。
+
+## 智能预检查（重要）
+
+**在执行 SQL 前，AI 必须遵循以下预检查流程：**
+
+### 1. 不确定表名时 → 先查表列表
+
+```bash
+# MySQL 查看所有表
+python3 <SKILL目录>/scripts/run_sql.py "SHOW TABLES;"
+
+# PostgreSQL 查看所有表
+python3 <SKILL目录>/scripts/run_sql.py "\dt"
+```
+
+### 2. 不确定字段名时 → 先查表结构
+
+```bash
+# MySQL 查看表结构
+python3 <SKILL目录>/scripts/run_sql.py "DESCRIBE 表名;"
+
+# MySQL 查看完整建表语句
+python3 <SKILL目录>/scripts/run_sql.py "SHOW CREATE TABLE 表名;"
+
+# PostgreSQL 查看表结构
+python3 <SKILL目录>/scripts/run_sql.py "\d 表名"
+
+# PostgreSQL 查看完整建表语句
+python3 <SKILL目录>/scripts/run_sql.py "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '表名';"
+```
+
+### 3. 执行流程示例
+
+```bash
+# ❌ 错误：直接执行（可能字段名错误）
+python3 <SKILL目录>/scripts/run_sql.py "SELECT * FROM wms_inbound_order WHERE order_no = 'IB123';"
+
+# ✅ 正确：先查表结构
+python3 <SKILL目录>/scripts/run_sql.py "DESCRIBE wms_inbound_order;"
+# 发现字段名是 inbound_no，不是 order_no
+
+# 再执行正确的 SQL
+python3 <SKILL目录>/scripts/run_sql.py "SELECT * FROM wms_inbound_order WHERE inbound_no = 'IB123';"
+```
+
+**触发场景**：
+- 第一次操作某张表
+- SQL 执行失败（表不存在/字段不存在）
+- 不确定字段名或表名
+- 用户说“查XX数据”但未指定表
+
+## 快速使用
+
+**脚本路径**：`<SKILL目录>/scripts/run_sql.py`
+
+```bash
+# 查询数据
+python3 <SKILL目录>/scripts/run_sql.py "SELECT * FROM users LIMIT 10;"
+
+# 插入/更新/删除
+python3 <SKILL目录>/scripts/run_sql.py "INSERT INTO users (name) VALUES ('张三');"
+python3 <SKILL目录>/scripts/run_sql.py "UPDATE users SET status = 'active' WHERE id = 1;"
+python3 <SKILL目录>/scripts/run_sql.py "DELETE FROM users WHERE id = 1;"
+
+# 事务操作（多条 SQL，全部成功才提交）
+python3 <SKILL目录>/scripts/run_sql.py -t \
+  "INSERT INTO users (name) VALUES ('张三');" \
+  "UPDATE accounts SET balance = balance - 100 WHERE id = 1;"
+
+# 事务操作（单条 SQL 也可以用 -t）
+python3 <SKILL目录>/scripts/run_sql.py -t "UPDATE users SET status = 'active' WHERE id = 1;"
+
+# JSON 格式输出
+python3 <SKILL目录>/scripts/run_sql.py -j "SELECT * FROM users;"
+```
+
+> **注意**：`<SKILL目录>` 会被自动替换为当前技能的实际路径
+
+> 详细参数说明见下方 [参数说明](#run_sqlpy-参数说明)
+
+## 核心操作
+
+### 查询数据
+
+```bash
+python3 <SKILL目录>/scripts/run_sql.py "SELECT * FROM users WHERE id = 1;"
+python3 <SKILL目录>/scripts/run_sql.py "SELECT COUNT(*) as total FROM orders;"
+```
+
+### 插入/更新/删除
+
+```bash
+python3 <SKILL目录>/scripts/run_sql.py "INSERT INTO users (name, email) VALUES ('张三', 'zhangsan@example.com');"
+python3 <SKILL目录>/scripts/run_sql.py "UPDATE users SET status = 'active' WHERE id = 1;"
+python3 <SKILL目录>/scripts/run_sql.py "DELETE FROM users WHERE id = 1;"
+```
+
+### 事务操作
+
+```bash
+# 多条 SQL 在同一事务中执行，任一失败则全部回滚
+python3 <SKILL目录>/scripts/run_sql.py -t \
+  "INSERT INTO users (name) VALUES ('张三');" \
+  "UPDATE accounts SET balance = balance - 100 WHERE user_id = 1;" \
+  "UPDATE accounts SET balance = balance + 100 WHERE user_id = 2;"
+```
+
+### 查看表结构
+
+```bash
+python3 <SKILL目录>/scripts/run_sql.py "DESCRIBE users;"
+python3 <SKILL目录>/scripts/run_sql.py "SHOW CREATE TABLE users;"
+```
+
+## 首次使用配置
+
+首次执行 SQL 时，如果检测到配置不存在，会自动启动交互式配置向导。
+
+也可以手动运行配置命令：
+
+```bash
+python3 <SKILL目录>/scripts/run_sql.py --init
+```
+
+配置文件位置：`~/.config/dba/config.json`（可通过 `AGENT_MYSQL_CONFIG` 环境变量覆盖）
+
+### MySQL 配置示例
+
+```json
+{
+  "current": "local",
+  "local": {
+    "type": "mysql",
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "pwd",
+    "database": "db"
+  }
+}
+```
+
+### PostgreSQL 配置示例
+
+```json
+{
+  "current": "local",
+  "local": {
+    "type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "pwd",
+    "database": "db"
+  }
+}
+```
+
+## 自动错误处理
+
+脚本会自动处理以下问题，无需手动操作：
+
+| 问题 | 自动处理 |
+|------|----------|
+| `pymysql` 未安装 (MySQL) | 自动安装依赖 |
+| `psycopg2-binary` 未安装 (PostgreSQL) | 自动安装依赖 |
+| 配置文件不存在 | 自动启动配置向导 |
+| 数据库连接失败 | 显示详细错误信息 |
+| SQL 语法错误 | 回滚事务并提示 |
+
+**常见 MySQL 错误**：
+- `OperationalError (1045)` - 密码错误，检查用户名/密码
+- `OperationalError (1049)` - 数据库不存在，检查数据库名
+- `OperationalError (2003)` - 连接失败，检查 MySQL 服务
+- `ProgrammingError (1146)` - 表不存在，检查表名
+
+**常见 PostgreSQL 错误**：
+- `OperationalError: FATAL: password authentication failed` - 密码错误
+- `OperationalError: FATAL: database does not exist` - 数据库不存在
+- `OperationalError: could not connect to server` - 连接失败
+- `UndefinedTable: relation does not exist` - 表不存在
+
+## run_sql.py 参数说明
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `sql` | 要执行的 SQL 语句（支持多条） | `"SELECT * FROM users;"` |
+| `--file, -f` | SQL 文件路径 | `--file query.sql` |
+| `--env, -e` | 数据库环境 | `--env dev` |
+| `--config, -c` | 配置文件路径 | `--config /path/to/config.json` |
+| `--max-rows, -m` | 最大返回行数 | `-m 100` |
+| `--json, -j` | JSON 格式输出 | `-j` |
+| `--transaction, -t` | **事务模式**（单条或多条SQL在同一事务中执行） | `-t "UPDATE..."` |
+| `--init` | **初始化配置**（交互式配置数据库） | `--init` |
+
+**使用示例**：
+
+```bash
+# 单条查询
+python3 <SKILL目录>/scripts/run_sql.py "SELECT * FROM users LIMIT 10;"
+
+# 多条 SQL（逐条执行，各自独立提交）
+python3 <SKILL目录>/scripts/run_sql.py "INSERT INTO..." "UPDATE..."
+
+# 事务模式（单条或多条SQL，全部成功才提交，任一失败则回滚）
+python3 <SKILL目录>/scripts/run_sql.py -t "UPDATE users SET status = 'active' WHERE id = 1;"
+
+python3 <SKILL目录>/scripts/run_sql.py -t \
+  "INSERT INTO users (name) VALUES ('张三');" \
+  "UPDATE accounts SET balance = balance - 100 WHERE id = 1;"
+
+# JSON 输出（方便程序处理）
+python3 <SKILL目录>/scripts/run_sql.py -j "SELECT * FROM users;"
+```
+
+## 数据库管理
+
+### MySQL
+
+```bash
+# 查看所有数据库
+python3 <SKILL目录>/scripts/run_sql.py "SHOW DATABASES;"
+
+# 查看当前数据库的表
+python3 <SKILL目录>/scripts/run_sql.py "SHOW TABLES;"
+
+# 创建数据库
+python3 <SKILL目录>/scripts/run_sql.py "CREATE DATABASE IF NOT EXISTS mydb CHARACTER SET utf8mb4;"
+```
+
+### PostgreSQL
+
+```bash
+# 查看所有数据库
+python3 <SKILL目录>/scripts/run_sql.py "SELECT datname FROM pg_database;"
+
+# 查看当前数据库的表
+python3 <SKILL目录>/scripts/run_sql.py "\dt"
+
+# 创建数据库
+python3 <SKILL目录>/scripts/run_sql.py "CREATE DATABASE mydb;"
+```
+
+## 安全建议
+
+1. **禁止**在代码中硬编码密码，使用配置文件或环境变量
+2. **使用**参数化查询防止 SQL 注入（拼接 SQL 时注意转义）
+3. 生产环境**建议**使用只读账号执行查询
+4. 修改操作建议使用事务，确保数据一致性
+
+## 执行规则（AI 必读）
+
+### 强制预检查
+
+**在执行任何 SQL 前，必须遵循：**
+
+1. **第一次操作表** → 先 `DESCRIBE 表名;` 确认字段名
+2. **不确定表名** → 先 `SHOW TABLES;` 查找表
+3. **SQL 报错** → 根据错误信息调整，不要盲目重试
+
+### 常见错误处理
+
+| 错误信息 | 原因 | 解决方法 |
+|---------|------|----------|
+| `Unknown column 'xxx'` (MySQL) | 字段名错误 | `DESCRIBE 表名;` 查看正确字段名 |
+| `Table 'xxx' doesn't exist` (MySQL) | 表名错误 | `SHOW TABLES;` 查找正确的表名 |
+| `relation "xxx" does not exist` (PostgreSQL) | 表名错误 | `\dt` 查找正确的表名 |
+| `column "xxx" does not exist` (PostgreSQL) | 字段名错误 | `\d 表名` 查看正确字段名 |
+
+### 执行前自检清单
+
+- [ ] 表名是否正确？（不确定的话 `SHOW TABLES;`）
+- [ ] 字段名是否正确？（不确定的话 `DESCRIBE 表名;`）
+- [ ] WHERE 条件字段是否存在？
+- [ ] UPDATE/DELETE 是否有 WHERE 条件？（防止全表更新/删除）
+
+**记住**：花 5 秒钟预检查，胜过花 5 分钟调试错误！

@@ -1,6 +1,0 @@
-{
-  "name": "CRUD",
-  "description": "数据库CRUD操作技能。基于 Python + pymysql，支持数据查询、增删改、事务控制、表结构查看等 CRUD 操作。",
-  "normalizedName": "crud",
-  "category": "开发"
-}

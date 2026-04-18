@@ -1,0 +1,15 @@
+// 筛选栏
+.filterBar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+// 操作区域 - 自动靠右
+.action {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}

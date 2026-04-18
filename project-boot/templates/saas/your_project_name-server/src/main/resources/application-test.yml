@@ -1,0 +1,16 @@
+# 测试环境配置已迁移到 Nacos 配置中心
+# Nacos namespace: ai_test
+# Data ID: your_group_name-your_project_name.yml
+# 本文件仅保留 Dubbo 注册中心配置（不支持 Nacos 动态配置）
+
+# Dubbo 注册中心
+dubbo:
+  application:
+    name: your_group_name-your_project_name
+  registry:
+    address: nacos://newtest-nacos.iyour_group_name.com:80?namespace=ai_test
+    use-as-config-center: false
+    use-as-metadata-center: false
+  protocol:
+    name: dubbo
+    port: 20883

@@ -1,0 +1,5 @@
+-- migrate:up
+-- TODO: 正向 SQL（如 CREATE TABLE、ALTER TABLE DROP COLUMN 等）
+
+-- migrate:down
+-- TODO: 添加回滚 SQL（如 DROP TABLE、ALTER TABLE DROP COLUMN 等）

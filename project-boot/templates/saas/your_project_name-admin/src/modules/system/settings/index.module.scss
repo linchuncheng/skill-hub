@@ -1,0 +1,330 @@
+@use '@/assets/styles/variables' as vars;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: vars.$gray-50;
+}
+
+.mainContent {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  overflow: auto;
+}
+
+// 左侧菜单卡片
+.menuCard {
+  width: 208px;
+  padding: 8px;
+  background: vars.$card-background;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 41px;
+  padding: 0 0 0 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all vars.$transition-fast;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.08);
+  }
+}
+
+.menuItemActive {
+  background: rgba(0, 122, 255, 0.08);
+
+  .menuItemIcon {
+    color: #007AFF;
+  }
+
+  .menuItemLabel {
+    color: #007AFF;
+    font-weight: 500;
+  }
+
+  &:hover {
+    background: rgba(0, 122, 255, 0.12);
+  }
+}
+
+.menuItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: vars.$gray-500;
+  font-size: 14px;
+}
+
+.menuItemLabel {
+  font-size: 14px;
+  color: vars.$gray-600;
+}
+
+// 右侧内容卡片
+.contentCard {
+  flex: 1;
+  padding: 24px;
+  background: vars.$card-background;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: auto;
+}
+
+.sectionTitle {
+  margin: 0 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: vars.$gray-900;
+}
+
+// 头像区域
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid vars.$border-color;
+}
+
+.largeAvatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  border-radius: 16px;
+  flex-shrink: 0;
+
+  span {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.avatarInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.avatarName {
+  font-size: 16px;
+  font-weight: 600;
+  color: vars.$gray-900;
+}
+
+.avatarRole {
+  font-size: 13px;
+  color: vars.$gray-500;
+}
+
+.changeAvatarBtn {
+  padding: 0;
+  height: auto;
+  font-size: 13px;
+  color: #007AFF;
+  
+  &:hover {
+    color: #0066DD;
+  }
+}
+
+// 表单区域
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.formItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: vars.$gray-500;
+}
+
+.formInput {
+  border-radius: 14px;
+  border-color: transparent;
+  background: rgba(120, 120, 128, 0.1);
+  
+  &:hover {
+    border-color: rgba(0, 122, 255, 0.3);
+  }
+
+  &:focus,
+  &:focus-within {
+    border-color: #007AFF;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+  }
+
+  & input {
+    background: transparent;
+  }
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+}
+
+.saveBtn {
+  min-width: 96px;
+  height: 37px;
+  border-radius: 14px;
+  background: #007AFF;
+  border-color: #007AFF;
+  font-weight: 500;
+
+  &:hover {
+    background: #0066DD;
+    border-color: #0066DD;
+  }
+}
+
+// 占位内容
+.placeholderContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: vars.$gray-500;
+  font-size: 14px;
+}
+
+// 暗黑模式适配
+:global(.dark) {
+  .header {
+    background: rgba(28, 28, 30, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+  
+  .container {
+    background: #000000;
+  }
+  
+  .menuCard,
+  .contentCard {
+    background: rgba(28, 28, 30, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  
+  .title,
+  .userName,
+  .sectionTitle,
+  .avatarName {
+    color: rgba(235, 235, 245, 0.85);
+  }
+  
+  .menuItemLabel {
+    color: rgba(235, 235, 245, 0.55);
+  }
+  
+  .menuItem:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+  
+  .menuItemIcon {
+    color: rgba(235, 235, 245, 0.55);
+  }
+  
+  .menuItemActive {
+    background: rgba(10, 132, 255, 0.15);
+
+    .menuItemIcon {
+      color: #0A84FF;
+    }
+
+    .menuItemLabel {
+      color: #0A84FF;
+    }
+
+    &:hover {
+      background: rgba(10, 132, 255, 0.2);
+    }
+  }
+  
+  .avatarRole,
+  .formLabel,
+  .placeholderContent {
+    color: rgba(235, 235, 245, 0.55);
+  }
+  
+  .avatarSection {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .changeAvatarBtn {
+    color: #0A84FF;
+    
+    &:hover {
+      color: #409CFF;
+    }
+  }
+  
+  .formInput {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: transparent;
+    color: rgba(235, 235, 245, 0.85);
+    
+    &:hover {
+      border-color: rgba(10, 132, 255, 0.3);
+    }
+
+    &:focus,
+    &:focus-within {
+      border-color: #0A84FF;
+      box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.15);
+    }
+
+    & input {
+      background: transparent;
+      color: rgba(235, 235, 245, 0.85);
+      
+      &::placeholder {
+        color: rgba(235, 235, 245, 0.35);
+      }
+    }
+  }
+  
+  .saveBtn {
+    background: #0A84FF;
+    border-color: #0A84FF;
+
+    &:hover {
+      background: #409CFF;
+      border-color: #409CFF;
+    }
+  }
+  
+  .formActions {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+}

@@ -1,0 +1,121 @@
+# === 操作系统 ===
+.DS_Store
+Thumbs.db
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# === IDE / 编辑器 ===
+.idea/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === 日志 ===
+*.log
+logs/
+
+# === 构建产物 ===
+**/node_modules/
+**/dist/
+**/target/
+**/build/
+
+# === 项目特定 ===
+wiki
+.claude/
+# === Maven ===
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# === 本地配置覆盖 ===
+*-local.yml
+*-local.yaml
+*-local.properties
+# === 前端依赖 ===
+.pnpm-store/
+.pnpm-debug.log
+
+# === 构建输出 ===
+dist-ssr/
+*.local
+
+# === 调试日志 ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# === VSCode（保留部分配置）===
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.vscode-test/
+
+# === 测试覆盖率 ===
+coverage/
+*.lcov
+.nyc_output/
+
+# === TypeScript ===
+*.tsbuildinfo
+
+# === 环境文件 ===
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.development
+!.env.production
+
+# === 工具缓存 ===
+.vite/
+.vitest/
+.eslintcache
+.prettiercache
+.cache/
+.parcel-cache/
+
+# === 临时文件 ===
+tmp/
+temp/
+*.tmp
+*.temp
+
+# === 证书 ===
+*.pem
+*.pem.key
+
+# === npm 相关 ===
+.npm
+*.tgz
+.yarn-integrity
+
+# === 框架特定 ===
+.next/
+out/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vercel/
+.turbo/

@@ -1,147 +1,74 @@
-# AI写作技能
+# AI 写作助手
 
-微信公众号文章创作、改写与发布一体化流程。
+公众号文章创作、改写、排版与发布一体化流程。
 
-## 功能特性
+## 核心功能
 
-- ✍️ **创作模式**: 根据主题/观点自动生成文章，搜索最新素材
-- 🔄 **改写模式**: 采集公众号文章，搜索补充内容，智能改写降重
-- 🎨 **主题发布**: 8种wenyan内置主题，一键发布到公众号草稿箱
-- 🖼️ **图片处理**: 自动下载微信图片，转换为本地路径
-- 📊 **可视化编辑**: 本地Markdown编辑器，实时预览
+- ✍️ **创作模式**: 根据主题自动生成文章
+- 🔄 **改写模式**: 采集文章智能改写降重
+- 🎨 **主题排版**: 6 种精美主题一键排版
+- 📤 **发布草稿**: 自动发布到公众号草稿箱
 
 ## 快速开始
 
-### 1. 安装依赖
+### 1. 配置公众号
 
-```bash
-# 安装 wenyan-cli（发布必需）
-npm install -g @wenyan-md/cli
-```
-
-### 2. 配置微信公众号（可选，仅发布时需要）
-
-创建配置文件 `~/.config/ai-writer/config.json`:
+创建 `~/.config/ai-writer/config.json`:
 
 ```json
 {
   "wechat": {
-    "app_id": "your_app_id",
-    "app_secret": "your_app_secret"
+    "app_id": "你的app_id",
+    "app_secret": "你的app_secret"
   },
   "publish": {
-    "default_theme": "pie",
-    "cover_size": {
-      "width": 1080,
-      "height": 864
-    }
+    "default_theme": "default"
   }
 }
 ```
 
-> ⚠️ 需要在微信公众号后台添加服务器IP白名单
-
-## 使用方式
-
-### 创作模式
-
-提供主题或观点，AI自动创作文章：
-
-```
-帮我写一篇关于AI编程工具的文章
-围绕这3个观点写一篇文章：...
-```
-
-### 改写模式
-
-提供公众号文章链接：
-
-```
-https://mp.weixin.qq.com/s/xxx
-```
-
-### 发布到公众号
+### 2. 初始化
 
 ```bash
-# 使用默认主题（pie）发布
-wenyan publish -f article.md
-
-# 指定主题发布
-wenyan publish -f article.md -t orangeheart
-wenyan publish -f article.md -t lapis
+python3 ai-writer/scripts/publish.py --init
 ```
 
-## 主题系统
+### 3. 发布文章
 
-使用 wenyan 内置的 8 种主题：
+```bash
+# 使用默认主题
+python3 ai-writer/scripts/publish.py article.md
 
-| 主题ID | 名称 | 风格 |
-|--------|------|------|
-| pie | 前端之巅 | 现代锐利（默认）|
-| default | 简约默认 | 简洁经典 |
-| orangeheart | 橙心 | 暖橙色调 |
-| rainbow | 彩虹 | 色彩活泼 |
-| lapis | 全栈蓝 | 科技蓝 |
-| maize | 柠檬黄 | 浅暖纸感 |
-| purple | 优雅紫 | 柔和优雅 |
-| phycat | 薄荷猫 | 薄荷清新 |
+# 指定主题
+python3 ai-writer/scripts/publish.py article.md orangesun
+```
+
+## 可用主题
+
+| 主题 | 说明 |
+|------|------|
+| default | 简约默认 |
+| orangesun | 橙光 |
+| redruby | 红宝石 |
+| greenmint | 薄荷绿 |
+| purplerain | 紫雨 |
+| blackink | 墨黑 |
 
 ## 文章格式
 
-Markdown 文件必须包含 frontmatter：
+Markdown 文件必须包含 frontmatter:
 
 ```markdown
 ---
 title: 文章标题
-cover: /Users/username/Documents/文章/images/封面图.jpg
-digest: 可选摘要（不超过120字）
+cover: 封面图URL或本地路径
 ---
 
 正文内容...
 ```
 
-> ⚠️ 正文不要使用 `#` 一级标题，frontmatter 的 title 会作为文章标题
+## 注意事项
 
-## 目录结构
-
-```
-ai-writer/
-├── SKILL.md                 # 技能说明（AI执行指南）
-├── manifest.json            # 技能清单
-├── references/
-│   ├── template.md          # 文章模板
-│   └── rewrite-quality-checklist.md
-├── scripts/
-│   ├── download_images.py   # 图片下载脚本
-│   ├── publisher/           # 发布脚本
-│   ├── md-editor.html       # 可视化编辑器
-│   ├── md-server.js         # 编辑器服务
-│   └── md-server.sh         # 服务管理脚本
-└── assets/                  # 参考文档
-```
-
-## 可视化编辑器
-
-```bash
-# 启动编辑器
-./scripts/md-server.sh start
-
-# 访问地址
-http://localhost:3456
-
-# 停止服务
-./scripts/md-server.sh stop
-```
-
-## 常见问题
-
-| 问题 | 解决 |
-|------|------|
-| wenyan 未安装 | `npm install -g @wenyan-md/cli` |
-| 发布失败 40164 | 检查IP白名单 |
-| 缺少封面图 | frontmatter 中添加 cover 字段 |
-| 标题重复 | 删除正文中的 `#` 一级标题 |
-
-## License
-
-MIT
+- 封面图建议使用公众号已有图片链接
+- 国外图床(picsum等)可能下载失败
+- 草稿创建成功后需手动在公众号后台发布

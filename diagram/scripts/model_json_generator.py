@@ -113,7 +113,7 @@ class DiagramConfig:
     title: str                                         # 大标题
     cols: int                                          # 领域列数
     domains: List[DomainConfig] = field(default_factory=list)  # 领域列表
-    relations: List[Dict[str, str]] = field(default_factory=list)  # 连线关系
+    relations: List[str] = field(default_factory=list)  # 连线关系（中文模型名->中文模型名）
 
 
 # ==================== SQL解析器 ====================
@@ -218,8 +218,12 @@ class ParamParser:
         return models
     
     @staticmethod
-    def parse_relations(rel_str: Optional[str]) -> List[Dict[str, str]]:
-        """解析连线关系"""
+    def parse_relations(rel_str: Optional[str]) -> List[str]:
+        """解析连线关系
+        
+        返回格式: ["源模型->目标模型", ...]
+        使用中文模型名，与--models参数中的中文名一致
+        """
         if not rel_str:
             return []
         relations = []
@@ -228,6 +232,7 @@ class ParamParser:
             if not item:
                 continue
             if '->' in item:
+                # 保持中文模型名格式
                 relations.append(item)
         return relations
     
@@ -266,7 +271,7 @@ class JSONGenerator:
         cols: int,
         domains_config: Dict[str, List[str]],
         models_config: Dict[str, dict],
-        relations: List[Dict[str, str]]
+        relations: List[str]
     ) -> DiagramConfig:
         """生成完整配置"""
         

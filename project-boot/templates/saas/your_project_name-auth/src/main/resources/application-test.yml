@@ -1,0 +1,3 @@
+# 测试环境配置已迁移到 Nacos 配置中心
+# Nacos namespace: ai_test
+# Data ID: your_group_name-auth.yml

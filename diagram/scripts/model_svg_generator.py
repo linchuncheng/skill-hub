@@ -34,6 +34,24 @@ COLOR_MAP = {
     '描述': {'fill': '#e3f2fd', 'stroke': '#1976d2'},
 }
 
+# 连线颜色调色板（用于区分不同连线）
+CONNECTOR_COLORS = [
+    '#e57373',  # 柔和红
+    '#81c784',  # 柔和绿
+    '#64b5f6',  # 柔和蓝
+    '#ffb74d',  # 柔和橙
+    '#ba68c8',  # 柔和紫
+    '#4db6ac',  # 柔和青
+    '#f06292',  # 柔和粉
+    '#7986cb',  # 柔和靛
+    '#aed581',  # 柔和黄绿
+    '#ff8a65',  # 柔和深橙
+    '#4dd0e1',  # 柔和青蓝
+    '#9575cd',  # 柔和深紫
+    '#fff176',  # 柔和黄
+    '#90a4ae',  # 柔和灰蓝
+]
+
 MODEL_WIDTH = 150
 MODEL_GAP_H = 45  # 水平间距
 MODEL_GAP_V = 25  # 垂直间距
@@ -307,7 +325,7 @@ class MultiDomainLayoutCalculator:
 
 # ==================== 连线计算器 ====================
 
-from component_line_generator import ComponentLineGenerator, NoValidPathError
+from model_line_generator import ComponentLineGenerator, NoValidPathError
 
 
 class ConnectorCalculator:
@@ -441,20 +459,37 @@ class SVGGenerator:
 
     def _header(self) -> str:
         """SVG头部"""
+        # 生成每条连线对应的彩色箭头标记
+        arrow_markers = []
+        for i in range(len(self.connectors)):
+            color = CONNECTOR_COLORS[i % len(CONNECTOR_COLORS)]
+            arrow_markers.append(f'''    <marker id="arrow{i}" viewBox="0 0 8 8" refX="7.5" refY="4"
+            markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 L 1 4 Z" fill="{color}"/>
+    </marker>''')
+        
+        markers_def = '\n'.join(arrow_markers)
+        
         return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.svg_w} {self.svg_h}" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
   <defs>
-    <!-- 箭头标记：小巧三角形，refX控制箭头离终点距离 -->
-    <marker id="arrow" viewBox="0 0 8 8" refX="7.5" refY="4"
-            markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M 0 0 L 8 4 L 0 8 L 1 4 Z" fill="#999"/>
-    </marker>
+    <!-- 箭头标记：为每条连线定义对应颜色的箭头 -->
+{markers_def}
   </defs>
   <style>
     .legend-text {{ font-size: 10px; fill: #555; }}
     @keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
     .layer-frame {{ opacity: 0; animation: fadeIn 0.4s ease-out forwards; }}
     .component-card {{ opacity: 0; animation: fadeIn 0.5s ease-out forwards; }}
-    .connector-line {{ opacity: 0; animation: fadeIn 0.4s ease-out forwards; }}
+    
+    /* 连线淡入 + 虚线流动动画 */
+    .connector-line {{ 
+      opacity: 0; 
+      animation: fadeIn 0.4s ease-out forwards, dashFlow 2s linear infinite; 
+    }}
+    
+    @keyframes dashFlow {{
+      to {{ stroke-dashoffset: -12; }}
+    }}
   </style>'''
     
     def _background(self) -> str:
@@ -561,21 +596,25 @@ class SVGGenerator:
         lines = ['  <!-- 连线 -->']
         for i, conn in enumerate(self.connectors):
             delay = 0.65 + i * 0.05
+            # 为每条连线分配不同颜色
+            color = CONNECTOR_COLORS[i % len(CONNECTOR_COLORS)]
+            # 使用对应颜色的箭头标记
+            arrow_id = f"arrow{i}"
             if conn.line_type == 'direct':
-                # 直连：使用简单线段
+                # 直连：使用简单线段（加虚线流动）
                 pts = conn.path.split()
                 if len(pts) == 2:
                     x1, y1 = pts[0].split(',')
                     x2, y2 = pts[1].split(',')
-                    lines.append(f'  <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="#999" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow)" class="connector-line" style="animation-delay: {delay}s"/>')
+                    lines.append(f'  <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#{arrow_id})" class="connector-line" style="animation-delay: {delay}s, {delay}s"/>')
             else:
-                # 折线：使用圆角路径
+                # 折线：使用圆角路径（加虚线流动）
                 if conn.path_dict:
                     d = self._generator.get_rounded_svg_path(conn.path_dict)
-                    lines.append(f'  <path d="{d}" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow)" class="connector-line" style="animation-delay: {delay}s"/>')
+                    lines.append(f'  <path d="{d}" fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#{arrow_id})" class="connector-line" style="animation-delay: {delay}s, {delay}s"/>')
                 else:
                     # 降级到polyline
-                    lines.append(f'  <polyline points="{conn.path}" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow)" class="connector-line" style="animation-delay: {delay}s"/>')
+                    lines.append(f'  <polyline points="{conn.path}" fill="none" stroke="{color}" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#{arrow_id})" class="connector-line" style="animation-delay: {delay}s, {delay}s"/>')
         return '\n'.join(lines)
 
 

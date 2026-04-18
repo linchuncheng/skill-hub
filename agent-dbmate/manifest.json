@@ -1,6 +1,0 @@
-{
-  "name": "DB迁移",
-  "description": "自动化执行 dbmate 数据库迁移，支持多模块动态发现、环境配置管理、迁移和回滚操作。一键执行迁移、查看状态、回滚操作。",
-  "normalizedName": "agent-dbmate",
-  "category": "运维"
-}

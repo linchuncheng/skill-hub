@@ -1,0 +1,46 @@
+# Fengqun Gateway Service Dockerfile
+# 使用本地构建的 JAR 包运行
+
+FROM eclipse-temurin:21-jre-alpine
+
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 创建应用目录和日志目录
+WORKDIR /app
+RUN mkdir -p /app/logs
+
+# 复制本地构建的 JAR 文件
+ARG JAR_FILE=your_project_name-gateway/target/your_project_name-gateway-*.jar
+COPY ${JAR_FILE} your_group_name-your_project_name-gateway.jar
+
+# 使用 root 用户运行
+USER root
+
+# 暴露端口
+EXPOSE 8080
+
+# JVM 参数（可根据环境调整）
+ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# 启动命令（支持环境变量配置）
+ENV NACOS_ADDR=${NACOS_ADDR:-host.docker.internal:8848}
+ENV NACOS_NAMESPACE=${NACOS_NAMESPACE:-}
+ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS \
+  -Dspring.application.name=your_group_name-your_project_name-gateway \
+  -Dnacos.config.server-addr=$NACOS_ADDR \
+  -Dnacos.config.namespace=$NACOS_NAMESPACE \
+  -Dnacos.config.bootstrap.enable=true \
+  -Dnacos.config.data-ids=your_group_name-common.yml,your_group_name-gateway.yml \
+  -Dnacos.config.group=DEFAULT_GROUP \
+  -Dnacos.config.type=yaml \
+  -Dspring.profiles.active=$SPRING_PROFILES_ACTIVE \
+  -jar your_group_name-your_project_name-gateway.jar \
+  --server.port=8080"]

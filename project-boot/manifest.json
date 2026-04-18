@@ -1,0 +1,6 @@
+{
+  "name": "项目启动器",
+  "description": "基于模板快速生成新的微服务项目脚手架。支持多种项目模板（如 SaaS、CRM 等），自动替换项目名、包名等关键信息。",
+  "normalizedName": "project-boot",
+  "category": "开发"
+}

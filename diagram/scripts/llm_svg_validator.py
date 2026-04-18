@@ -98,6 +98,8 @@ class BaseValidator:
         try:
             self.content = self.svg_path.read_text(encoding='utf-8')
             self.root = ET.fromstring(self.content)
+            # 构建元素到父级的映射(用于获取 transform 偏移)
+            self.parent_map = {c: p for p in self.root.iter() for c in p}
             return True
         except ET.ParseError as e:
             self.errors.append(f"XML 解析错误: {e}")
@@ -132,8 +134,11 @@ class BaseValidator:
             self.warnings.append("[结构] 缺少 <defs>（建议包含 arrow marker 和 CSS style）")
             return
         defs_str = ET.tostring(defs, encoding='unicode')
-        if 'id="arrow"' not in defs_str and "id='arrow'" not in defs_str:
-            self.warnings.append("[结构] <defs> 中缺少 arrow marker（id='arrow'）")
+        # 检查是否有 arrow marker（支持 id="arrow" 或 id="arrow-*"）
+        has_arrow = 'id="arrow"' in defs_str or "id='arrow'" in defs_str
+        has_arrow_prefix = 'id="arrow-' in defs_str or "id='arrow-" in defs_str
+        if not has_arrow and not has_arrow_prefix:
+            self.warnings.append("[结构] <defs> 中缺少 arrow marker（id='arrow' 或 id='arrow-*'）")
 
     def check_animation(self):
         """有动画；检测 SVG transform 与 CSS 动画冲突"""
@@ -165,15 +170,884 @@ class BaseValidator:
                 self.warnings.append("[内容] 未检测到图表标题（建议添加大字号标题文本）")
 
     def check_has_connectors(self):
-        """必须有连线（line 或 polyline）"""
+        """必须有连线（line 或 polyline 或 path）"""
         lines = list(iter_tag(self.root, 'line'))
         polylines = list(iter_tag(self.root, 'polyline'))
-        paths_as_lines = [
-            p for p in iter_tag(self.root, 'path')
-            if p.get('stroke') and not p.get('fill', 'none').startswith('#')
-        ]
+        # 检测有 stroke 属性的 path（连线）
+        # 包括内联 stroke 属性和通过 CSS class 设置的 stroke
+        paths_as_lines = []
+        for p in iter_tag(self.root, 'path'):
+            # 检查内联 stroke 属性
+            if p.get('stroke'):
+                paths_as_lines.append(p)
+            # 检查 CSS class（如果 class 包含 line/connector/flow 等关键词）
+            elif p.get('class'):
+                css_class = p.get('class', '')
+                if any(keyword in css_class for keyword in ['line', 'connector', 'flow', 'arrow', 'edge']):
+                    paths_as_lines.append(p)
+        
         if not lines and not polylines and not paths_as_lines:
             self.warnings.append("[连线] 未检测到任何连线（line/polyline/path），图表应有连接关系")
+
+    def check_connectors_quality(self):
+        """连线质量检测：不穿过组件、四边中点、线段长度、90°折线"""
+        # 收集所有组件（rect）
+        components = []
+        for rect in iter_tag(self.root, 'rect'):
+            x = float(rect.get('x', 0))
+            y = float(rect.get('y', 0))
+            w = float(rect.get('width', 0))
+            h = float(rect.get('height', 0))
+            # 过滤条件：
+            # 1. 宽度 > 50 且高度 > 30（排除背景和大容器）
+            # 2. 不是整个 SVG 尺寸（排除背景）
+            vb = self.root.get('viewBox', '0 0 1000 1000').split()
+            vb_w = float(vb[2]) if len(vb) >= 4 else 1000
+            vb_h = float(vb[3]) if len(vb) >= 4 else 1000
+            if w > 50 and h > 30 and w < vb_w * 0.95 and h < vb_h * 0.95:
+                components.append({
+                    'x1': x, 'y1': y, 'x2': x + w, 'y2': y + h,
+                    'text': self._get_rect_text(rect)
+                })
+        
+        if not components:
+            return
+        
+        # 收集所有连线路径
+        paths = []
+        for path in iter_tag(self.root, 'path'):
+            if path.get('stroke'):
+                d = path.get('d', '')
+                if d.startswith('M'):
+                    paths.append({
+                        'd': d,
+                        'element': path
+                    })
+        
+        if not paths:
+            return
+        
+        # 检测每条连线
+        errors_count = 0
+        for path_info in paths:
+            path_errors = self._validate_path(path_info['d'], path_info['element'], components)
+            errors_count += len(path_errors)
+            self.errors.extend(path_errors)
+        
+        if errors_count > 0:
+            self.infos.append(f"[连线质量] 检测到 {errors_count} 个连线问题")
+        else:
+            self.infos.append(f"[连线质量] 所有连线符合规范")
+    
+    def check_arrows(self):
+        """箭头标记规范检查（line_standard.md 第12节）"""
+        # 1. 检查 <defs> 中的 marker 定义
+        defs = None
+        for elem in self.root:
+            if strip_ns(elem.tag) == 'defs':
+                defs = elem
+                break
+        
+        if defs is None:
+            self.warnings.append("[箭头] 缺少 <defs>，无法定义 arrow marker")
+            return
+        
+        # 检查所有 marker
+        markers = list(iter_tag(defs, 'marker'))
+        if not markers:
+            self.warnings.append("[箭头] <defs> 中未定义任何 marker")
+            return
+        
+        for marker in markers:
+            marker_id = marker.get('id', '')
+            if not marker_id.startswith('arrow'):
+                continue
+            
+            # 检查 viewBox
+            viewBox = marker.get('viewBox')
+            if not viewBox or viewBox != '0 0 8 8':
+                self.errors.append(
+                    f"[箭头] marker#{marker_id} 的 viewBox 应为 '0 0 8 8'，"
+                    f"当前为 '{viewBox}'"
+                )
+            
+            # 检查 markerWidth/Height
+            mw = marker.get('markerWidth')
+            mh = marker.get('markerHeight')
+            if mw != '5' or mh != '5':
+                self.errors.append(
+                    f"[箭头] marker#{marker_id} 的尺寸应为 markerWidth='5' markerHeight='5'，"
+                    f"当前为 {mw}x{mh}"
+                )
+            
+            # 检查 refX/refY
+            refX = marker.get('refX')
+            refY = marker.get('refY')
+            if refX != '7.5' or refY != '4':
+                self.warnings.append(
+                    f"[箭头] marker#{marker_id} 的参考点建议为 refX='7.5' refY='4'，"
+                    f"当前为 refX='{refX}' refY='{refY}'"
+                )
+            
+            # 检查箭头路径
+            arrow_paths = list(iter_tag(marker, 'path'))
+            if not arrow_paths:
+                self.errors.append(f"[箭头] marker#{marker_id} 缺少 <path> 定义")
+                continue
+            
+            for arrow_path in arrow_paths:
+                d = arrow_path.get('d', '')
+                fill = arrow_path.get('fill')
+                
+                # 检查是否为标准带凹口V形箭头
+                is_notched_v = 'M 0 0 L 8 4 L 0 8 L 1 4 Z' in d or 'M0 0L8 4L0 8L1 4Z' in d
+                
+                if not is_notched_v:
+                    self.errors.append(
+                        f"[箭头] marker#{marker_id} 的箭头路径不标准，"
+                        f"应为 'M 0 0 L 8 4 L 0 8 L 1 4 Z'（带凹口V形）"
+                    )
+                
+                # 检查必须是实心填充
+                if not fill or fill == 'none':
+                    self.errors.append(
+                        f"[箭头] marker#{marker_id} 必须实心填充（fill='连线颜色'），"
+                        f"当前为 fill='{fill}'"
+                    )
+    
+    def _get_transform_offset(self, element):
+        """获取元素及其所有父级 <g> 的 transform 偏移量"""
+        total_x = 0.0
+        total_y = 0.0
+        
+        current = element
+        while current is not None:
+            # 检查当前元素是否有 transform 属性
+            transform = current.get('transform', '')
+            if transform:
+                # 解析 translate(x, y)
+                match = re.search(r'translate\(([\d.]+),\s*([\d.]+)\)', transform)
+                if match:
+                    total_x += float(match.group(1))
+                    total_y += float(match.group(2))
+            
+            # 移动到父元素
+            current = self.parent_map.get(current)
+        
+        return total_x, total_y
+        
+    def _get_rect_text(self, rect):
+        """获取矩形关联的文本(用于错误提示)"""
+        # 获取矩形的绝对坐标(考虑父级 transform)
+        offset_x, offset_y = self._get_transform_offset(rect)
+        x = float(rect.get('x', 0)) + offset_x
+        y = float(rect.get('y', 0)) + offset_y
+        w = float(rect.get('width', 0))
+        h = float(rect.get('height', 0))
+        center_x = x + w / 2
+        center_y = y + h / 2
+            
+        # 查找中心点附近的文本(考虑文本也可能在 transform 的 <g> 内)
+        for text in iter_tag(self.root, 'text'):
+            text_offset_x, text_offset_y = self._get_transform_offset(text)
+            tx = float(text.get('x', 0)) + text_offset_x
+            ty = float(text.get('y', 0)) + text_offset_y
+            if abs(tx - center_x) < w / 2 and abs(ty - center_y) < h / 2:
+                return text.text or ''
+        return '未命名组件'
+    
+    def _parse_path_points(self, d):
+        """解析 path 的 d 属性，提取所有坐标点和命令类型"""
+        points = []
+        commands = []
+        
+        # 匹配 M、L、Q 命令
+        m_pattern = r'M\s+([\d.]+)\s+([\d.]+)'
+        l_pattern = r'L\s+([\d.]+)\s+([\d.]+)'
+        q_pattern = r'Q\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)'
+        
+        # 提取 M 命令（起点）
+        for match in re.finditer(m_pattern, d):
+            points.append((float(match.group(1)), float(match.group(2))))
+            commands.append('M')
+        
+        # 提取 L 命令（直线）
+        for match in re.finditer(l_pattern, d):
+            points.append((float(match.group(1)), float(match.group(2))))
+            commands.append('L')
+        
+        # 提取 Q 命令（二次贝塞尔曲线，圆角）
+        # Q 命令格式：Q cx cy x y（控制点 + 终点）
+        # 我们只关心终点，控制点用于后续验证
+        for match in re.finditer(q_pattern, d):
+            cx, cy = float(match.group(1)), float(match.group(2))
+            ex, ey = float(match.group(3)), float(match.group(4))
+            points.append((ex, ey))
+            commands.append(('Q', cx, cy))  # 保存控制点信息
+        
+        return points, commands
+    
+    def _validate_path(self, d, element, components):
+        """验证单条连线的质量"""
+        errors = []
+        
+        # 解析所有命令和点
+        segments = []  # 存储所有线段（包括 Q 命令的起始→终点）
+        
+        # 匹配所有命令
+        cmd_pattern = r'([MLQ])\s+([\d.]+)\s+([\d.]+)(?:\s+([\d.]+)\s+([\d.]+))?'
+        
+        prev_point = None
+        for match in re.finditer(cmd_pattern, d):
+            cmd = match.group(1)
+            x1, y1 = float(match.group(2)), float(match.group(3))
+            
+            if cmd == 'M':
+                prev_point = (x1, y1)
+            elif cmd == 'L':
+                if prev_point:
+                    segments.append({
+                        'type': 'L',
+                        'start': prev_point,
+                        'end': (x1, y1)
+                    })
+                prev_point = (x1, y1)
+            elif cmd == 'Q':
+                # Q cx cy x y
+                cx, cy = x1, y1
+                ex, ey = float(match.group(4)), float(match.group(5))
+                if prev_point:
+                    segments.append({
+                        'type': 'Q',
+                        'start': prev_point,
+                        'control': (cx, cy),
+                        'end': (ex, ey)
+                    })
+                prev_point = (ex, ey)
+        
+        # 1. 检测 L 命令的线段是否为 90° 折线
+        for seg in segments:
+            if seg['type'] == 'L':
+                x1, y1 = seg['start']
+                x2, y2 = seg['end']
+                if x1 != x2 and y1 != y2:
+                    errors.append(
+                        f"[连线质量] L 命令包含斜线段 ({x1},{y1})→({x2},{y2})，"
+                        f"应改为 90° 折线（只能水平或垂直）"
+                    )
+                    break  # 只报告一次
+        
+        # 1.5 检测是否混合使用 L 和 Q 命令（不允许）
+        has_l = any(seg['type'] == 'L' for seg in segments)
+        has_q = any(seg['type'] == 'Q' for seg in segments)
+        if has_l and has_q:
+            errors.append(
+                f"[连线质量] 连线混合使用直角(L)和圆角(Q)命令，"
+                f"应统一使用一种风格（全直角或全圆角）"
+            )
+        
+        # 2. 检测 L 命令的线段长度 ≥ 20px（排除 Q 命令前后的短线段）
+        for i, seg in enumerate(segments):
+            if seg['type'] == 'L':
+                x1, y1 = seg['start']
+                x2, y2 = seg['end']
+                length = abs(x2 - x1) if y1 == y2 else abs(y2 - y1)
+                
+                # 检查是否是 Q 命令前后的线段
+                is_near_q = False
+                if i > 0 and segments[i-1]['type'] == 'Q':
+                    is_near_q = True  # 前一个是 Q
+                if i < len(segments) - 1 and segments[i+1]['type'] == 'Q':
+                    is_near_q = True  # 后一个是 Q
+                
+                # 如果是 Q 命令附近的短线段，跳过检测
+                if is_near_q and length < 20:
+                    continue
+                
+                if length < 20 and length > 0:
+                    errors.append(
+                        f"[连线质量] L 线段长度 {length:.0f}px < 20px，"
+                        f"({x1},{y1})→({x2},{y2}) 转折前长度不足"
+                    )
+        
+        # 3. 检测所有线段是否穿过组件（排除起点和终点）
+        all_points = []
+        for seg in segments:
+            all_points.append(seg['start'])
+            all_points.append(seg['end'])
+        
+        if not all_points:
+            return errors
+        
+        for seg in segments:
+            segment = (seg['start'], seg['end'])
+            
+            for comp in components:
+                # 跳过起点和终点所在的组件
+                start_in_comp = self._point_in_rect(seg['start'], comp)
+                end_in_comp = self._point_in_rect(seg['end'], comp)
+                
+                if start_in_comp or end_in_comp:
+                    continue
+                
+                # 检测线段是否穿过组件
+                if self._segment_intersects_rect(segment, comp):
+                    comp_text = comp['text']
+                    x1, y1 = seg['start']
+                    x2, y2 = seg['end']
+                    errors.append(
+                        f"[连线质量] 连线穿过组件「{comp_text}」"
+                        f"({comp['x1']:.0f}-{comp['x2']:.0f}, {comp['y1']:.0f}-{comp['y2']:.0f})，"
+                        f"线段 ({x1:.0f},{y1:.0f})→({x2:.0f},{y2:.0f}) 需要绕行"
+                    )
+        
+        return errors
+    
+    def _point_in_rect(self, point, rect):
+        """检测点是否在矩形内"""
+        x, y = point
+        return (rect['x1'] <= x <= rect['x2'] and 
+                rect['y1'] <= y <= rect['y2'])
+    
+    def _segment_intersects_rect(self, segment, rect):
+        """检测线段是否与矩形相交（穿过组件）"""
+        (x1, y1), (x2, y2) = segment
+        rx1, ry1, rx2, ry2 = rect['x1'], rect['y1'], rect['x2'], rect['y2']
+        
+        # 水平线段
+        if y1 == y2:
+            y = y1
+            x_start, x_end = min(x1, x2), max(x1, x2)
+            # 线段的 y 在矩形 y 范围内
+            if ry1 <= y <= ry2:
+                # 线段的 x 与矩形 x 有交集
+                if not (x_end < rx1 or x_start > rx2):
+                    return True
+        
+        # 垂直线段
+        if x1 == x2:
+            x = x1
+            y_start, y_end = min(y1, y2), max(y1, y2)
+            # 线段的 x 在矩形 x 范围内
+            if rx1 <= x <= rx2:
+                # 线段的 y 与矩形 y 有交集
+                if not (y_end < ry1 or y_start > ry2):
+                    return True
+        
+        return False
+
+    def _is_rect_inside_another(self, inner, outer_candidates):
+        """检测一个矩形是否完全包含在另一个矩形内部（作为子元素）"""
+        inner_x1, inner_y1 = inner['x1'], inner['y1']
+        inner_x2, inner_y2 = inner['x2'], inner['y2']
+        
+        for outer in outer_candidates:
+            # 跳过自己
+            if inner is outer:
+                continue
+            # 检查 inner 是否完全在 outer 内部（留有一定边距）
+            margin = 5  # 容差边距
+            if (inner_x1 >= outer['x1'] + margin and 
+                inner_y1 >= outer['y1'] + margin and
+                inner_x2 <= outer['x2'] - margin and 
+                inner_y2 <= outer['y2'] - margin):
+                return True
+        return False
+    
+    def check_component_overlap(self):
+        """检测组件重叠:组件之间至少间隔 10px"""
+        # 收集所有组件(rect)
+        raw_components = []
+        for rect in iter_tag(self.root, 'rect'):
+            # 获取绝对坐标(考虑父级 <g> 的 transform)
+            offset_x, offset_y = self._get_transform_offset(rect)
+            x = float(rect.get('x', 0)) + offset_x
+            y = float(rect.get('y', 0)) + offset_y
+            w = float(rect.get('width', 0))
+            h = float(rect.get('height', 0))
+            # 过滤条件:
+            # 1. 宽度 > 50 且高度 > 30(排除背景和大容器)
+            # 2. 不是整个 SVG 尺寸(排除背景)
+            # 3. 排除图例区域的小方块(宽度 <= 20)
+            vb = self.root.get('viewBox', '0 0 1000 1000').split()
+            vb_w = float(vb[2]) if len(vb) >= 4 else 1000
+            vb_h = float(vb[3]) if len(vb) >= 4 else 1000
+            if w > 50 and h > 30 and w < vb_w * 0.95 and h < vb_h * 0.95:
+                raw_components.append({
+                    'x1': x, 'y1': y, 'x2': x + w, 'y2': y + h,
+                    'text': self._get_rect_text(rect),
+                    'element': rect
+                })
+        
+        # 过滤掉完全包含在其他组件内部的子元素
+        components = [
+            comp for comp in raw_components 
+            if not self._is_rect_inside_another(comp, raw_components)
+        ]
+        
+        # 记录被过滤的子元素数量（用于调试信息）
+        filtered_count = len(raw_components) - len(components)
+        if filtered_count > 0:
+            self.infos.append(f"[组件重叠] 检测到 {filtered_count} 个容器内部子元素，已排除")
+        
+        if len(components) < 2:
+            return
+        
+        # 检测每对组件之间的重叠
+        MIN_GAP = 20  # 最小间隔 20px
+        overlap_count = 0
+        
+        for i in range(len(components)):
+            for j in range(i + 1, len(components)):
+                comp_a = components[i]
+                comp_b = components[j]
+                
+                # 计算两个矩形之间的距离
+                gap_x = max(0, max(comp_a['x1'], comp_b['x1']) - min(comp_a['x2'], comp_b['x2']))
+                gap_y = max(0, max(comp_a['y1'], comp_b['y1']) - min(comp_a['y2'], comp_b['y2']))
+                
+                # 如果 gap_x 和 gap_y 都为 0，说明重叠
+                # 如果只有一个为 0，另一个 < MIN_GAP，说明间距不足
+                if gap_x == 0 and gap_y == 0:
+                    # 完全重叠或部分重叠
+                    overlap_count += 1
+                    self.errors.append(
+                        f"[组件重叠] 组件「{comp_a['text']}」与「{comp_b['text']}」重叠，"
+                        f"需要调整位置确保至少间隔 {MIN_GAP}px"
+                    )
+                elif gap_x < MIN_GAP and gap_y == 0:
+                    # 水平间距不足
+                    overlap_count += 1
+                    self.warnings.append(
+                        f"[组件间距] 组件「{comp_a['text']}」与「{comp_b['text']}」"
+                        f"水平间距 {gap_x:.0f}px < {MIN_GAP}px，建议增加间距"
+                    )
+                elif gap_y < MIN_GAP and gap_x == 0:
+                    # 垂直间距不足
+                    overlap_count += 1
+                    self.warnings.append(
+                        f"[组件间距] 组件「{comp_a['text']}」与「{comp_b['text']}」"
+                        f"垂直间距 {gap_y:.0f}px < {MIN_GAP}px，建议增加间距"
+                    )
+        
+        if overlap_count > 0:
+            self.infos.append(f"[组件重叠] 检测到 {overlap_count} 个重叠/间距问题")
+        else:
+            self.infos.append(f"[组件重叠] 所有组件间距符合规范（≥{MIN_GAP}px）")
+    
+    def check_text_component_overlap(self):
+        """检测文字是否与组件重叠(组件外的说明文字不能进入组件内部)"""
+        # 收集所有组件
+        components = []
+        for rect in iter_tag(self.root, 'rect'):
+            # 获取绝对坐标(考虑父级 <g> 的 transform)
+            offset_x, offset_y = self._get_transform_offset(rect)
+            x = float(rect.get('x', 0)) + offset_x
+            y = float(rect.get('y', 0)) + offset_y
+            w = float(rect.get('width', 0))
+            h = float(rect.get('height', 0))
+            vb = self.root.get('viewBox', '0 0 1000 1000').split()
+            vb_w = float(vb[2]) if len(vb) >= 4 else 1000
+            vb_h = float(vb[3]) if len(vb) >= 4 else 1000
+            if w > 50 and h > 30 and w < vb_w * 0.95 and h < vb_h * 0.95:
+                components.append({
+                    'x1': x, 'y1': y, 'x2': x + w, 'y2': y + h,
+                    'text': self._get_rect_text(rect)
+                })
+        
+        if not components:
+            return
+        
+        # 收集所有文字元素（包括 tspan）
+        texts = []
+        for text_elem in iter_tag(self.root, 'text'):
+            x = float(text_elem.get('x', 0))
+            y = float(text_elem.get('y', 0))
+            
+            # 检查是否有 tspan
+            tspans = list(iter_tag(text_elem, 'tspan'))
+            if tspans:
+                # 多行文字，计算总高度
+                first_tspan = tspans[0]
+                first_x = float(first_tspan.get('x', x))
+                first_y = float(first_tspan.get('y', y))
+                
+                # 估算宽度（取最长的 tspan）
+                max_width = 0
+                longest_content = ''
+                for tspan in tspans:
+                    content = (tspan.text or '').strip()
+                    if len(content) > len(longest_content):
+                        longest_content = content
+                    chinese_chars = len([c for c in content if '\u4e00' <= c <= '\u9fff'])
+                    other_chars = len(content) - chinese_chars
+                    estimated_width = chinese_chars * 12 + other_chars * 7
+                    max_width = max(max_width, estimated_width)
+                
+                # 跳过空文字
+                if not longest_content.strip():
+                    continue
+                
+                # 估算总高度（每行约 18px）
+                estimated_height = len(tspans) * 18
+                
+                texts.append({
+                    'x1': first_x,
+                    'y1': first_y,
+                    'x2': first_x + max_width,
+                    'y2': first_y + estimated_height,
+                    'text': longest_content[:30],
+                    'element': text_elem,
+                    'is_multiline': True
+                })
+            else:
+                # 单行文字
+                text_content = (text_elem.text or '').strip()
+                
+                # 跳过空文字
+                if not text_content:
+                    continue
+                
+                chinese_chars = len([c for c in text_content if '\u4e00' <= c <= '\u9fff'])
+                other_chars = len(text_content) - chinese_chars
+                estimated_width = chinese_chars * 12 + other_chars * 7
+                estimated_height = 16
+                
+                texts.append({
+                    'x1': x,
+                    'y1': y - estimated_height,  # 文字基线定位，需要向上偏移
+                    'x2': x + estimated_width,
+                    'y2': y,
+                    'text': text_content[:30],
+                    'element': text_elem,
+                    'is_multiline': False
+                })
+        
+        if not texts:
+            return
+        
+        # 检测文字是否与组件重叠
+        MIN_GAP = 10  # 文字与组件至少间隔 10px
+        overlap_count = 0
+        
+        for text_info in texts:
+            for comp in components:
+                # 计算文字与组件的距离
+                gap_x = max(0, max(text_info['x1'], comp['x1']) - min(text_info['x2'], comp['x2']))
+                gap_y = max(0, max(text_info['y1'], comp['y1']) - min(text_info['y2'], comp['y2']))
+                
+                # 如果重叠（间距为 0）
+                if gap_x == 0 and gap_y == 0:
+                    # 检查文字中心点
+                    text_center_x = (text_info['x1'] + text_info['x2']) / 2
+                    text_center_y = (text_info['y1'] + text_info['y2']) / 2
+                    
+                    # 判断文字是否在组件内部
+                    text_in_comp = (comp['x1'] <= text_center_x <= comp['x2'] and 
+                                   comp['y1'] <= text_center_y <= comp['y2'])
+                    
+                    # 如果文字在组件内部，跳过（这是正常的组件标题/说明）
+                    if text_in_comp:
+                        continue
+                    
+                    # 外部文字与组件重叠，计算建议调整距离
+                    overlap_count += 1
+                    if overlap_count <= 3:
+                        # 计算需要移动的距离
+                        if text_info['x2'] > comp['x1'] and text_info['x1'] < comp['x1']:
+                            move_x = int(text_info['x2'] - comp['x1'] + MIN_GAP)
+                            suggestion = f"建议向左移动 {move_x}px"
+                        elif text_info['x1'] < comp['x2'] and text_info['x2'] > comp['x2']:
+                            move_x = int(text_info['x1'] - comp['x2'] + MIN_GAP)
+                            suggestion = f"建议向右移动 {abs(move_x)}px"
+                        elif text_info['y2'] > comp['y1'] and text_info['y1'] < comp['y1']:
+                            move_y = int(text_info['y2'] - comp['y1'] + MIN_GAP)
+                            suggestion = f"建议向上移动 {move_y}px"
+                        elif text_info['y1'] < comp['y2'] and text_info['y2'] > comp['y2']:
+                            move_y = int(text_info['y1'] - comp['y2'] + MIN_GAP)
+                            suggestion = f"建议向下移动 {abs(move_y)}px"
+                        else:
+                            suggestion = "需要调整位置"
+                        
+                        self.warnings.append(
+                            f"[文字重叠] 文字「{text_info['text']}」与组件「{comp['text']}」重叠，"
+                            f"{suggestion} 避免遮挡"
+                        )
+        
+        if overlap_count > 0:
+            if overlap_count > 3:
+                self.infos.append(f"[文字重叠] 检测到 {overlap_count} 个文字与组件重叠（仅显示前3个）")
+            else:
+                self.infos.append(f"[文字重叠] 检测到 {overlap_count} 个文字与组件重叠")
+        else:
+            self.infos.append("[文字重叠] 所有外部文字与组件间距符合规范")
+
+    def check_connector_elements(self):
+        """检查连线元素规范：必须使用 <path> 且 fill="none"（line_standard.md 第11.3节）"""
+        # 检测是否使用了 <line> 元素（应该用 <path>）
+        lines = list(iter_tag(self.root, 'line'))
+        if lines:
+            self.errors.append(
+                f"[连线元素] 检测到 {len(lines)} 个 <line> 元素，"
+                f"连线必须使用 <path> 而非 <line>（便于动画和 marker 支持）"
+            )
+        
+        # 检测 <path> 是否缺少 fill="none"
+        paths_without_fill_none = []
+        for path in iter_tag(self.root, 'path'):
+            if path.get('stroke'):  # 只检查有 stroke 的 path（连线）
+                fill = path.get('fill', '')
+                if fill != 'none':
+                    paths_without_fill_none.append(path)
+        
+        if paths_without_fill_none:
+            self.errors.append(
+                f"[连线元素] 检测到 {len(paths_without_fill_none)} 个 <path> 缺少 fill='none'，"
+                f"连线路径必须设置 fill='none' 防止填充形成黑色块"
+            )
+        
+        if not lines and not paths_without_fill_none:
+            self.infos.append("[连线元素] 所有连线符合规范（使用 <path> + fill='none'）")
+    
+    def check_connection_points(self):
+        """检查连接点是否为四边中点（line_standard.md 第1.1节）"""
+        # 收集所有组件
+        components = []
+        for rect in iter_tag(self.root, 'rect'):
+            x = float(rect.get('x', 0))
+            y = float(rect.get('y', 0))
+            w = float(rect.get('width', 0))
+            h = float(rect.get('height', 0))
+            vb = self.root.get('viewBox', '0 0 1000 1000').split()
+            vb_w = float(vb[2]) if len(vb) >= 4 else 1000
+            vb_h = float(vb[3]) if len(vb) >= 4 else 1000
+            if w > 50 and h > 30 and w < vb_w * 0.95 and h < vb_h * 0.95:
+                # 计算四边中点
+                center_x = x + w / 2
+                center_y = y + h / 2
+                components.append({
+                    'x1': x, 'y1': y, 'x2': x + w, 'y2': y + h,
+                    'text': self._get_rect_text(rect),
+                    'midpoints': {
+                        'L': (x, center_y),
+                        'R': (x + w, center_y),
+                        'T': (center_x, y),
+                        'B': (center_x, y + h)
+                    }
+                })
+        
+        if len(components) < 2:
+            return
+        
+        # 检查所有连线的起点和终点
+        TOLERANCE = 3  # 容忍度 3px
+        violation_count = 0
+        
+        for path in iter_tag(self.root, 'path'):
+            # 检查是否是连线（有 stroke 属性或 CSS class 包含 line/flow 等关键词）
+            is_connector = False
+            if path.get('stroke'):
+                is_connector = True
+            elif path.get('class'):
+                css_class = path.get('class', '')
+                if any(keyword in css_class for keyword in ['line', 'connector', 'flow', 'arrow', 'edge']):
+                    is_connector = True
+            
+            if not is_connector:
+                continue
+            
+            d = path.get('d', '')
+            if not d.startswith('M'):
+                continue
+            
+            # 正确解析路径点（区分 M/L 和 Q 命令）
+            # Q 命令格式：Q cx cy x y（控制点 + 终点）
+            # 我们只需要 M、L 的点和 Q 的终点
+            path_points = []
+            
+            # 匹配 M 和 L 命令
+            for match in re.finditer(r'[ML]\s+([\d.]+)\s+([\d.]+)', d):
+                path_points.append((float(match.group(1)), float(match.group(2))))
+            
+            # 匹配 Q 命令的终点（第3、4个数字）
+            for match in re.finditer(r'Q\s+[\d.]+\s+[\d.]+\s+([\d.]+)\s+([\d.]+)', d):
+                path_points.append((float(match.group(1)), float(match.group(2))))
+            
+            if len(path_points) < 2:
+                continue
+            
+            start_point = path_points[0]
+            end_point = path_points[-1]
+            
+            # 检查起点是否在某个组件的四边中点上
+            start_valid = False
+            for comp in components:
+                for side, mid in comp['midpoints'].items():
+                    if (abs(start_point[0] - mid[0]) <= TOLERANCE and 
+                        abs(start_point[1] - mid[1]) <= TOLERANCE):
+                        start_valid = True
+                        break
+                if start_valid:
+                    break
+            
+            # 检查终点是否在某个组件的四边中点上
+            end_valid = False
+            for comp in components:
+                for side, mid in comp['midpoints'].items():
+                    if (abs(end_point[0] - mid[0]) <= TOLERANCE and 
+                        abs(end_point[1] - mid[1]) <= TOLERANCE):
+                        end_valid = True
+                        break
+                if end_valid:
+                    break
+            
+            if not start_valid or not end_valid:
+                violation_count += 1
+                if violation_count <= 3:  # 只报告前3个错误
+                    self.errors.append(
+                        f"[连接点] 连线起点({start_point[0]:.0f},{start_point[1]:.0f}) "
+                        f"或终点({end_point[0]:.0f},{end_point[1]:.0f}) "
+                        f"不在组件四边中点上（L/R/T/B）"
+                    )
+        
+        if violation_count > 0:
+            if violation_count > 3:
+                self.infos.append(f"[连接点] 检测到 {violation_count} 个连接点不规范（仅显示前3个）")
+            else:
+                self.infos.append(f"[连接点] 检测到 {violation_count} 个连接点不规范")
+        else:
+            self.infos.append("[连接点] 所有连线连接点符合规范（四边中点）")
+    
+    def check_connection_direction(self):
+        """检查连线出发/进入方向是否垂直于边框（line_standard.md 第2节）"""
+        # 收集所有组件
+        components = []
+        for rect in iter_tag(self.root, 'rect'):
+            x = float(rect.get('x', 0))
+            y = float(rect.get('y', 0))
+            w = float(rect.get('width', 0))
+            h = float(rect.get('height', 0))
+            vb = self.root.get('viewBox', '0 0 1000 1000').split()
+            vb_w = float(vb[2]) if len(vb) >= 4 else 1000
+            vb_h = float(vb[3]) if len(vb) >= 4 else 1000
+            if w > 50 and h > 30 and w < vb_w * 0.95 and h < vb_h * 0.95:
+                center_x = x + w / 2
+                center_y = y + h / 2
+                components.append({
+                    'x1': x, 'y1': y, 'x2': x + w, 'y2': y + h,
+                    'text': self._get_rect_text(rect),
+                    'midpoints': {
+                        'L': (x, center_y),
+                        'R': (x + w, center_y),
+                        'T': (center_x, y),
+                        'B': (center_x, y + h)
+                    }
+                })
+        
+        if len(components) < 2:
+            return
+        
+        TOLERANCE = 3
+        violation_count = 0
+        
+        for path in iter_tag(self.root, 'path'):
+            # 检查是否是连线（有 stroke 属性或 CSS class 包含 line/flow 等关键词）
+            is_connector = False
+            if path.get('stroke'):
+                is_connector = True
+            elif path.get('class'):
+                css_class = path.get('class', '')
+                if any(keyword in css_class for keyword in ['line', 'connector', 'flow', 'arrow', 'edge']):
+                    is_connector = True
+            
+            if not is_connector:
+                continue
+            
+            d = path.get('d', '')
+            if not d.startswith('M'):
+                continue
+            
+            # 解析所有命令
+            commands = []
+            for match in re.finditer(r'([MLQ])\s+([\d.]+)\s+([\d.]+)', d):
+                cmd = match.group(1)
+                x = float(match.group(2))
+                y = float(match.group(3))
+                commands.append((cmd, x, y))
+            
+            if len(commands) < 2:
+                continue
+            
+            # 检查第一段线段的方向
+            start_point = (commands[0][1], commands[0][2])
+            second_point = (commands[1][1], commands[1][2])
+            
+            # 找到起点所在的组件和边
+            for comp in components:
+                for side, mid in comp['midpoints'].items():
+                    if (abs(start_point[0] - mid[0]) <= TOLERANCE and 
+                        abs(start_point[1] - mid[1]) <= TOLERANCE):
+                        # 验证第一段是否垂直于该边
+                        dx = second_point[0] - start_point[0]
+                        dy = second_point[1] - start_point[1]
+                        
+                        valid = False
+                        if side == 'L' and dx < 0 and abs(dy) < TOLERANCE:  # L边应该向左
+                            valid = True
+                        elif side == 'R' and dx > 0 and abs(dy) < TOLERANCE:  # R边应该向右
+                            valid = True
+                        elif side == 'T' and dy < 0 and abs(dx) < TOLERANCE:  # T边应该向上
+                            valid = True
+                        elif side == 'B' and dy > 0 and abs(dx) < TOLERANCE:  # B边应该向下
+                            valid = True
+                        
+                        if not valid:
+                            violation_count += 1
+                            if violation_count <= 3:
+                                self.errors.append(
+                                    f"[方向约束] 从组件「{comp['text']}」{side}边出发的连线 "
+                                    f"第一段方向不垂直于边框（应该{'向左' if side == 'L' else '向右' if side == 'R' else '向上' if side == 'T' else '向下'}）"
+                                )
+                        break
+                
+                # 检查最后一段线段的方向（进入方向）
+                if len(commands) >= 2:
+                    end_point = (commands[-1][1], commands[-1][2])
+                    prev_point = (commands[-2][1], commands[-2][2])
+                    
+                    for side, mid in comp['midpoints'].items():
+                        if (abs(end_point[0] - mid[0]) <= TOLERANCE and 
+                            abs(end_point[1] - mid[1]) <= TOLERANCE):
+                            # 验证最后一段是否垂直于该边
+                            dx = end_point[0] - prev_point[0]
+                            dy = end_point[1] - prev_point[1]
+                            
+                            valid = False
+                            if side == 'L' and dx > 0 and abs(dy) < TOLERANCE:  # L边应该从左来
+                                valid = True
+                            elif side == 'R' and dx < 0 and abs(dy) < TOLERANCE:  # R边应该从右来
+                                valid = True
+                            elif side == 'T' and dy > 0 and abs(dx) < TOLERANCE:  # T边应该从下来
+                                valid = True
+                            elif side == 'B' and dy < 0 and abs(dx) < TOLERANCE:  # B边应该从上来
+                                valid = True
+                            
+                            if not valid:
+                                violation_count += 1
+                                if violation_count <= 3:
+                                    self.errors.append(
+                                        f"[方向约束] 进入组件「{comp['text']}」{side}边的连线 "
+                                        f"最后一段方向不垂直于边框（应该{'从右来' if side == 'L' else '从左来' if side == 'R' else '从下来' if side == 'T' else '从上来'}）"
+                                    )
+                            break
+        
+        if violation_count > 0:
+            if violation_count > 3:
+                self.infos.append(f"[方向约束] 检测到 {violation_count} 个方向问题（仅显示前3个）")
+            else:
+                self.infos.append(f"[方向约束] 检测到 {violation_count} 个方向问题")
+        else:
+            self.infos.append("[方向约束] 所有连线方向符合规范（垂直于边框）")
 
     def run_common(self):
         self.check_svg_root()
@@ -181,6 +1055,13 @@ class BaseValidator:
         self.check_defs()
         self.check_animation()
         self.check_has_connectors()
+        self.check_connectors_quality()
+        self.check_arrows()  # 新增：箭头规范检查
+        self.check_component_overlap()  # 新增：组件重叠检查
+        self.check_text_component_overlap()  # 新增：文字与组件重叠检查
+        self.check_connector_elements()  # 新增：连线元素规范检查
+        self.check_connection_points()  # 新增：连接点四边中点检查
+        self.check_connection_direction()  # 新增：方向垂直约束检查
 
     def validate(self) -> bool:
         raise NotImplementedError
@@ -859,19 +1740,8 @@ class GenericValidator(BaseValidator):
         if not self.load():
             return False
         self.run_common()
-        self._check_colors()
+        # 移除硬性配色检查，配色规范通过 LLM 提示词引导，保留自由度
         return len(self.errors) == 0
-
-    def _check_colors(self):
-        """颜色应在预设配色范围内"""
-        color_pattern = r'#[0-9A-Fa-f]{6}'
-        found_colors = set(re.findall(color_pattern, self.content))
-        # 大小写统一
-        found_upper = {c.upper() for c in found_colors}
-        valid_upper = {c.upper() for c in ARCH_COLORS}
-        invalid = found_upper - valid_upper
-        if invalid:
-            self.warnings.append(f"[配色] 使用了非预设配色: {sorted(invalid)[:6]}")
 
 
 # ============================================================

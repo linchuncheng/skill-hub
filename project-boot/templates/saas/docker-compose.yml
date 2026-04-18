@@ -1,0 +1,190 @@
+# 基础设施 Docker Compose
+# 包含：MySQL、Redis、Nacos
+# 项目名称已设置为 infra，可被多个项目共享
+# 
+# 使用方式：
+#   docker-compose up -d  # 启动基础设施
+#   
+# 其他项目引用此基础设施：
+#   在项目的 docker-compose.yml 中添加：
+#     networks:
+#       infra:
+#         external: true
+
+# 设置 Compose 项目名称，使 Docker Desktop 显示为 infra
+name: infra
+
+services:
+  # ============================================
+  # 数据存储
+  # ============================================
+
+  # MySQL 8.0 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: nacos
+      TZ: "Asia/Shanghai"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/init:/docker-entrypoint-initdb.d
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+      - "--default-time-zone=+08:00"
+      - "--init-connect=SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+      - "--skip-character-set-client-handshake"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - infra
+    restart: unless-stopped
+
+  # Redis 7.x 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: "Asia/Shanghai"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - infra
+    restart: unless-stopped
+
+  # ============================================
+  # 服务治理
+  # ============================================
+
+  # Nacos 2.x 配置中心 + 服务注册中心（单机模式）
+  # 注意：官方镜像不支持 arm64，使用 amd64 + Rosetta
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    container_name: nacos
+    platform: linux/amd64
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_DB_NAME: nacos
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: 123456
+      NACOS_AUTH_ENABLE: "false"
+      TZ: "Asia/Shanghai"
+      JVM_XMS: 128m
+      JVM_XMX: 256m
+      JVM_MS: 64m
+      JVM_MMS: 128m
+    volumes:
+      - nacos_data:/home/nacos/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - infra
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+
+  # ============================================
+  # 消息队列（已注释，节省资源 - 一期使用Dubbo RPC，二期启用）
+  # ============================================
+
+  # RocketMQ NameServer (名字服务)
+  # 注意：官方镜像不支持 arm64，使用 amd64 + Rosetta
+  # rocketmq-namesrv:
+  #   image: apache/rocketmq:5.1.0
+  #   container_name: rocketmq-namesrv
+  #   platform: linux/amd64
+  #   ports:
+  #     - "9876:9876"
+  #   environment:
+  #     JAVA_OPT_EXT: "-Dcom.aliyun.dts.cache.fashionDate=true"
+  #     TZ: "Asia/Shanghai"
+  #   volumes:
+  #     - namesrv_data:/home/rocketmq/data
+  #   command: sh mqnamesrv
+  #   healthcheck:
+  #     test: ["CMD", "sh", "-c", "nc -z localhost 9876"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   networks:
+  #     - infra
+  #   restart: unless-stopped
+
+  # RocketMQ Broker (消息队列)
+  # rocketmq-broker:
+  #   image: apache/rocketmq:5.1.0
+  #   container_name: rocketmq-broker
+  #   platform: linux/amd64
+  #   ports:
+  #     - "10909:10909"
+  #     - "10911:10911"
+  #   environment:
+  #     NAMESRV_ADDR: rocketmq-namesrv:9876
+  #     JAVA_OPT_EXT: "-Dcom.aliyun.dts.cache.fashionDate=true"
+  #     TZ: "Asia/Shanghai"
+  #   volumes:
+  #     - broker_data:/home/rocketmq/data
+  #     - ./docker/broker.conf:/home/rocketmq/broker.conf
+  #   command: sh mqbroker -c /home/rocketmq/broker.conf
+  #   depends_on:
+  #     rocketmq-namesrv:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "sh", "-c", "nc -z localhost 10911"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   networks:
+  #     - infra
+  #   restart: unless-stopped
+
+networks:
+  infra:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  nacos_data:
+    driver: local
+  # namesrv_data:
+  #   driver: local
+  # broker_data:
+  #   driver: local

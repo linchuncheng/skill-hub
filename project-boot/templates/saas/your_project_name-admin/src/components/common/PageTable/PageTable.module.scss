@@ -1,0 +1,130 @@
+@use '../../../assets/styles/variables' as vars;
+
+// 表格页面容器 - 全屏布局
+.container {
+  background: vars.$card-background;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+// 筛选区域 - 固定在顶部
+.filterBar {
+  flex-shrink: 0;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+// 表格包装器 - 填充剩余空间
+.tableWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+
+  // 表格撑满容器
+  :global {
+    .ant-table-wrapper {
+      height: 100%;
+
+      .ant-spin-nested-loading {
+        height: 100%;
+
+        .ant-spin-container {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+      }
+
+      .ant-table {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .ant-table-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          .ant-table-body {
+            flex: 1;
+            overflow: auto !important;
+            display: flex;
+            flex-direction: column;
+
+            // 空数据时撑满高度
+            .ant-table-placeholder {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              min-height: 200px;
+            }
+
+            .ant-table-content {
+              flex: 1;
+            }
+
+            // 展开行撑满高度 - 空数据状态
+            .ant-table-expanded-row-fixed {
+              flex: 1 !important;
+              min-height: 200px !important;
+              height: auto !important;
+              overflow: visible !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+            }
+          }
+        }
+
+        // 空数据状态撑满
+        .ant-table-placeholder {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 200px;
+        }
+
+        // 展开行撑满高度 - 空数据状态
+        .ant-table-expanded-row-fixed {
+          flex: 1 !important;
+          min-height: 200px !important;
+          height: auto !important;
+          overflow: visible !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+      }
+
+      // 分页器固定底部
+      .ant-pagination {
+        flex-shrink: 0;
+        padding: 16px 0;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// 暗黑模式 (Figma HEIY)
+:global(.dark) {
+  .container {
+    background: #1C1C1E;
+  }
+
+  .filterBar {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "title": "电商领域模型",
+  "cols": 4,
+  "domains": [{
+    "name": "用户域",
+    "models": [{
+      "model": "User",
+      "name": "用户",
+      "type": "角色",
+      "position": [0, 1],
+      "attributes": ["用户名", "密码", "昵称", "手机号", "邮箱", "头像", "性别", "状态", "最后登录时间"],
+      "behaviors": ["登录"],
+      "associations": ["user_level", "user_address", "user_login_log"]
+    }, {
+      "model": "UserLevel",
+      "name": "用户等级",
+      "type": "描述",
+      "position": [0, 0],
+      "attributes": ["等级名称", "等级值", "最低积分", "最高积分", "折扣率", "等级图标"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "UserAddress",
+      "name": "收货地址",
+      "type": "资源",
+      "position": [1, 0],
+      "attributes": ["收货人", "手机号", "省", "市", "区", "详细地址", "是否默认"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "UserLoginLog",
+      "name": "登录日志",
+      "type": "时标",
+      "position": [1, 1],
+      "attributes": ["登录方式", "登录IP", "登录设备", "登录地点", "登录时间", "登出时间"],
+      "behaviors": [],
+      "associations": []
+    }]
+  }, {
+    "name": "商品域",
+    "models": [{
+      "model": "ProductCategory",
+      "name": "商品类目",
+      "type": "描述",
+      "position": [0, 0],
+      "attributes": ["类目名称", "层级", "排序", "图标", "状态"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "ProductBrand",
+      "name": "商品品牌",
+      "type": "描述",
+      "position": [0, 1],
+      "attributes": ["品牌名称", "英文名", "品牌Logo", "品牌描述", "排序", "状态"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "ProductSpu",
+      "name": "商品SPU",
+      "type": "资源",
+      "position": [0, 2],
+      "attributes": ["商品名称", "副标题", "商品编码", "主图", "商品图片", "商品详情", "状态", "排序"],
+      "behaviors": ["上下架"],
+      "associations": ["product_category", "product_brand", "product_sku"]
+    }, {
+      "model": "ProductSku",
+      "name": "商品SKU",
+      "type": "资源",
+      "position": [1, 2],
+      "attributes": ["SKU编码", "SKU名称", "规格信息", "销售价", "原价", "成本价", "库存", "冻结库存", "重量", "体积", "SKU图片", "状态"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "ProductStockLog",
+      "name": "库存日志",
+      "type": "时标",
+      "position": [2, 2],
+      "attributes": ["变更类型", "变更数量", "变更前库存", "变更后库存", "关联单号", "备注"],
+      "behaviors": [],
+      "associations": []
+    }]
+  }, {
+    "name": "订单域",
+    "models": [{
+      "model": "Cart",
+      "name": "购物车",
+      "type": "资源",
+      "position": [0, 0],
+      "attributes": ["数量", "是否选中"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "Order",
+      "name": "订单",
+      "type": "时标",
+      "position": [0, 1],
+      "attributes": ["订单号", "商品总金额", "优惠金额", "运费", "应付金额", "支付方式", "支付时间", "订单状态", "收货人", "手机号", "省", "市", "区", "详细地址", "买家备注", "发货时间", "收货时间", "取消时间", "取消原因"],
+      "behaviors": ["下单", "支付", "发货", "取消"],
+      "associations": ["cart", "order_item", "order_payment", "order_delivery"]
+    }, {
+      "model": "OrderItem",
+      "name": "订单明细",
+      "type": "时标",
+      "position": [1, 1],
+      "attributes": ["订单号", "SKU编码", "SKU名称", "规格信息", "商品图片", "单价", "数量", "小计金额", "优惠金额", "实付金额", "状态"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "OrderPayment",
+      "name": "支付记录",
+      "type": "时标",
+      "position": [1, 2],
+      "attributes": ["订单号", "支付流水号", "支付方式", "支付金额", "支付状态", "支付时间", "退款金额", "退款时间"],
+      "behaviors": [],
+      "associations": []
+    }, {
+      "model": "OrderDelivery",
+      "name": "订单物流",
+      "type": "时标",
+      "position": [2, 1],
+      "attributes": ["订单号", "快递公司", "快递单号", "发货时间", "签收时间", "状态"],
+      "behaviors": [],
+      "associations": []
+    }]
+  }],
+  "relations": ["用户等级->用户", "用户->收货地址", "用户->登录日志", "商品类目->商品SPU", "商品品牌->商品SPU", "商品SPU->商品SKU", "商品SKU->库存日志", "购物车->订单", "订单->订单明细", "订单->支付记录", "订单->订单物流"]
+}

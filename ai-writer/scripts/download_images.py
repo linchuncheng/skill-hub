@@ -111,7 +111,16 @@ def download_image(url: str, output_path: Path, headers: dict = None) -> bool:
 
 
 def extract_title_from_md(content: str) -> str:
-    """从 Markdown 内容中提取标题（第一个 # 开头的行）"""
+    """从 Markdown frontmatter 中提取标题"""
+    # 尝试从 frontmatter 中提取 title
+    frontmatter_match = re.match(r'^---\n(.*?)\n---', content, re.DOTALL)
+    if frontmatter_match:
+        fm_content = frontmatter_match.group(1)
+        title_match = re.search(r'^title:\s*(.+)$', fm_content, re.MULTILINE)
+        if title_match:
+            return title_match.group(1).strip()
+    
+    # 如果没有 frontmatter,尝试找第一个 # 标题
     lines = content.split('\n')
     for line in lines:
         line = line.strip()
