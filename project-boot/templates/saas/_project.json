@@ -1,8 +1,12 @@
 {
     "name": "saas",
-    "description": "SaaS 多租户微服务架构模板，包含完整的认证、网关、平台管理和业务模块",
-    "author": "林春成",
+    "description": "SaaS 多租户微服务架构模板，包含完整的认证、网关、RBAC和业务模块",
+    "author": "鹿Sir",
     "version": "1.0.0",
+    "replacements": {
+        "scm": "项目英文名",
+        "fengqun": "组织英文名"
+    },
     "tech_stack": {
         "backend": "Java 21 | Spring Boot 3.5 | MyBatis-Plus | Dubbo | MySQL 8 | Redis 7 | RocketMQ",
         "frontend": "React 18 | TypeScript 5.3 | Ant Design 5 | Vite 6 | Zustand",
@@ -10,21 +14,15 @@
     },
     "modules": {
         "backend": [
-            "saas-common - 公共基础模块（租户管理、统一响应、异常处理）",
-            "saas-api - Dubbo RPC 接口定义",
-            "saas-auth - 认证授权服务",
-            "saas-gateway - API 网关服务",
-            "saas-platform - 平台管理服务（用户、角色、权限）",
-            "saas-xxx - 业务模块示例"
+            "fengqun-scm-service - RBAC、认证授权、业务服务"
         ],
         "frontend": [
-            "saas-admin - 管理后台前端"
+            "fengqun-scm-admin - 管理后台前端"
         ]
     },
     "features": [
         "多租户架构支持",
         "统一认证授权（JWT）",
-        "API 网关路由",
         "Dubbo RPC 服务调用",
         "Nacos 配置中心",
         "数据库迁移管理（dbmate）",

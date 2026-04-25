@@ -162,7 +162,7 @@ DATABASE_URL="<数据库类型>://<用户名>:<密码>@<主机>:<端口>/<数据
 **示例：**
 ```env
 # MySQL
-DATABASE_URL="mysql://root:123456@localhost:3306/database_name"
+DATABASE_URL="mysql://root:fengqun123@localhost:3306/fengqun_scm"
 
 # PostgreSQL
 DATABASE_URL="postgres://username:password@localhost:5432/database_name"

@@ -1,0 +1,6 @@
+{
+  "name": "Redis操作",
+  "description": "Redis 操作工具。支持键值查询、字符串、哈希、列表、集合、有序集合等数据类型的增删改查，支持 Pipeline 批量操作、键扫描、TTL 管理。触发词：Redis、缓存查询、查键、查缓存、键值操作、缓存管理",
+  "normalizedName": "redis",
+  "category": "开发"
+}

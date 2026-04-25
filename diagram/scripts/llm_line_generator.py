@@ -6,6 +6,14 @@ LLM 连线生成器 - 从 JSON 配置生成 SVG 连线图
 根据组件的 xywh 坐标和连线列表，自动生成带标签、动画的 SVG 连线图。
 支持反向连线自动检测和偏移。
 
+⚠️ JSON 配置中 connections 格式（字符串数组）：
+{
+  "connections": [
+    "组件A->组件B",
+    "组件B->组件C"
+  ]
+}
+
 使用示例：
     python3 llm_line_generator.py config.json output.svg
 """
@@ -33,6 +41,12 @@ def generate_svg(config: Dict[str, Any]) -> Dict[str, Any]:
     
     Returns:
         包含 svg_content, stats, warnings 的字典
+    
+    ⚠️ connections 必须使用字符串数组格式：
+    ["组件A->组件B", "组件B->组件C"]
+    
+    与领域模型图 (model_svg_generator.py) 使用相同的 relations 格式，避免混淆。
+    脚本内部会将字符串转换为对象格式进行处理。
     """
     # 提取配置
     viewBox = config.get("viewBox", [0, 0, 900, 750])
@@ -40,7 +54,20 @@ def generate_svg(config: Dict[str, Any]) -> Dict[str, Any]:
     subtitle = config.get("subtitle", "")
     style = config.get("style", "rounded")
     components = config.get("components", [])
-    connections = config.get("connections", [])
+    connections_raw = config.get("connections", [])
+    
+    # 转换 connections 格式：["A->B", "B->C"] → [{"source": "A", "target": "B"}, {"source": "B", "target": "C"}]
+    connections = []
+    for conn in connections_raw:
+        if isinstance(conn, str) and '->' in conn:
+            # 字符串格式："组件A->组件B"
+            parts = conn.split('->')
+            connections.append({
+                "source": parts[0].strip(),
+                "target": parts[1].strip() if len(parts) > 1 else ""
+            })
+        else:
+            raise ValueError(f"无效的连线格式: {conn}。必须使用字符串格式，例如：\"组件A->组件B\"")
     
     # 初始化
     generator = ComponentLineGenerator()
@@ -84,8 +111,8 @@ def generate_svg(config: Dict[str, Any]) -> Dict[str, Any]:
     reverse_pair_indices = set()
     
     for idx, conn in enumerate(connections):
-        pair_key = (conn["from"], conn["to"])
-        reverse_key = (conn["to"], conn["from"])
+        pair_key = (conn["source"], conn["target"])
+        reverse_key = (conn["target"], conn["source"])
         
         if reverse_key in reverse_pairs:
             first_idx = reverse_pairs[reverse_key]
@@ -95,9 +122,9 @@ def generate_svg(config: Dict[str, Any]) -> Dict[str, Any]:
             reverse_pairs[pair_key] = idx
     
     # 检测从同一点出发的多条连线（用于偏移处理）
-    same_source_groups = {}  # from_id -> [indices]
+    same_source_groups = {}  # source_id -> [indices]
     for idx, conn in enumerate(connections):
-        from_id = conn["from"]
+        from_id = conn["source"]
         if from_id not in same_source_groups:
             same_source_groups[from_id] = []
         same_source_groups[from_id].append(idx)
@@ -120,8 +147,8 @@ def generate_svg(config: Dict[str, Any]) -> Dict[str, Any]:
     connection_elements = []
     
     for idx, conn in enumerate(connections):
-        from_id = conn["from"]
-        to_id = conn["to"]
+        from_id = conn["source"]
+        to_id = conn["target"]
         
         # 查找组件
         if from_id not in component_map or to_id not in component_map:

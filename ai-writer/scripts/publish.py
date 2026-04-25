@@ -208,7 +208,7 @@ def publish_to_wechat(md_file, theme_name, config):
         
         warning('ℹ️  正在发布到公众号...\n')
         
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
         
         print()
         success('✅ 发布成功！')
@@ -216,13 +216,22 @@ def publish_to_wechat(md_file, theme_name, config):
         print('  https://mp.weixin.qq.com/')
     except subprocess.CalledProcessError as e:
         print()
-        error('❌ 发布失败！')
-        warning('\n💡 常见问题：')
-        print('  1. 未配置账号 → 运行 python3 publish.py --init 配置')
-        print('  2. Frontmatter 缺失 → 文件顶部添加 title + cover')
-        print('  3. API 凭证错误 → 检查账号配置')
-        print('  4. 封面图路径错误 → 必须使用URL或绝对路径')
-        print('  5. 封面图尺寸错误 → 建议 1080×864 像素')
+        # 检查是否是 48001 api unauthorized（草稿已创建，仅发布环节无权限）
+        combined = str(e.stdout or '') + str(e.stderr or '')
+        if '48001' in combined or 'api unauthorized' in combined.lower():
+            success('✅ 草稿创建成功！')
+            success('📱 请前往微信公众号后台草稿箱查看并手动发布：')
+            print('  https://mp.weixin.qq.com/')
+            print()
+            warning('💡 说明：文章已成功保存到草稿箱，点击「群发」即可发布')
+        else:
+            error('❌ 发布失败！')
+            warning('\n💡 常见问题：')
+            print('  1. 未配置账号 → 运行 python3 publish.py --init 配置')
+            print('  2. Frontmatter 缺失 → 文件顶部添加 title + cover')
+            print('  3. API 凭证错误 → 检查账号配置')
+            print('  4. 封面图路径错误 → 必须使用URL或绝对路径')
+            print('  5. 封面图尺寸错误 → 建议 1080×864 像素')
         sys.exit(1)
 
 # ─── 主函数 ────────────────────────────────────────────────

@@ -1,0 +1,1201 @@
+@use '../../../assets/styles/variables' as vars;
+
+// ==================== Apple HIG 侧边栏样式 ====================
+// Light 模式变量
+$sidebar-bg-light: rgba(255, 255, 255, 0.85);
+$sidebar-border-light: rgba(0, 0, 0, 0.08);
+$sidebar-text-primary: #1C1C1E;
+$sidebar-text-secondary: #3A3A3C;
+$sidebar-text-tertiary: #636366;
+$sidebar-text-quaternary: #8E8E93;
+$sidebar-item-hover-bg: rgba(120, 120, 128, 0.08);
+$sidebar-item-selected-bg: rgba(0, 122, 255, 0.08);
+$sidebar-item-selected-text: #007AFF;
+$sidebar-input-bg: rgba(120, 120, 128, 0.1);
+$sidebar-divider: rgba(0, 0, 0, 0.06);
+
+// Dark 模式变量 (Figma 设计规范)
+$sidebar-bg-dark: rgba(28, 28, 30, 0.92);
+$sidebar-border-dark: rgba(255, 255, 255, 0.07);
+$sidebar-item-selected-bg-dark: rgba(10, 132, 255, 0.15);
+$sidebar-item-selected-text-dark: #0A84FF;
+$sidebar-input-bg-dark: rgba(255, 255, 255, 0.07);
+$sidebar-divider-dark: rgba(255, 255, 255, 0.07);
+$sidebar-text-primary-dark: #FFFFFF;
+$sidebar-text-secondary-dark: rgba(235, 235, 245, 0.85);
+$sidebar-text-tertiary-dark: rgba(235, 235, 245, 0.55);
+$sidebar-text-quaternary-dark: rgba(235, 235, 245, 0.35);
+$sidebar-card-bg-dark: rgba(28, 28, 30, 0.6);
+$sidebar-hover-bg-dark: rgba(255, 255, 255, 0.07);
+$header-bg-dark: rgba(28, 28, 30, 0.85);
+$body-bg-dark: #000000;
+
+// 侧边栏容器
+.sider {
+  background: $sidebar-bg-light !important;
+  border-right: 1px solid $sidebar-border-light;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+
+  :global {
+    .ant-layout-sider-children {
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    // 菜单样式 - Light 模式
+    .ant-menu {
+      background: transparent !important;
+      border-right: none !important;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 12px;
+
+      // 透明滚动条样式 - Apple HIG 风格
+      scrollbar-width: thin;
+      scrollbar-color: rgba(120, 120, 128, 0.15) transparent;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(120, 120, 128, 0.15);
+        border-radius: 3px;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: rgba(120, 120, 128, 0.3);
+        }
+      }
+
+      // 收缩模式下的居中对齐
+      &.ant-menu-inline-collapsed {
+        padding: 0 8px;
+
+        > .ant-menu-item,
+        > .ant-menu-submenu > .ant-menu-submenu-title {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          padding: 0 !important;
+          padding-inline: 0 !important;
+          width: calc(100% - 0px) !important;
+          margin-inline: 0 !important;
+
+          .anticon {
+            margin: 0 !important;
+            margin-right: 0 !important;
+          }
+
+          .ant-menu-title-content {
+            display: none !important;
+          }
+        }
+      }
+
+      &.ant-menu-light {
+        .ant-menu-item {
+          height: 37px;
+          line-height: 37px;
+          margin: 1px 0;
+          padding: 0 12px !important;
+          border-radius: 10px;
+          color: $sidebar-text-secondary;
+          font-size: 14px;
+          transition: all 0.15s ease;
+
+          &:hover {
+            color: $sidebar-text-primary;
+            background: $sidebar-item-hover-bg;
+          }
+
+          &.ant-menu-item-selected {
+            color: $sidebar-item-selected-text;
+            background: $sidebar-item-selected-bg;
+            font-weight: 600;
+
+            .anticon {
+              color: $sidebar-item-selected-text;
+            }
+          }
+
+          .anticon {
+            font-size: 17px;
+            margin-right: 10px;
+            color: $sidebar-text-tertiary;
+          }
+        }
+
+        .ant-menu-submenu {
+          .ant-menu-submenu-title {
+            height: 37px;
+            line-height: 37px;
+            margin: 1px 0;
+            padding: 0 12px !important;
+            border-radius: 10px;
+            color: $sidebar-text-secondary;
+            font-size: 14px;
+
+            &:hover {
+              color: $sidebar-text-primary;
+              background: $sidebar-item-hover-bg;
+            }
+
+            .anticon {
+              font-size: 17px;
+              margin-right: 10px;
+              color: $sidebar-text-tertiary;
+            }
+          }
+
+          &.ant-menu-submenu-selected {
+            .ant-menu-submenu-title {
+              color: $sidebar-item-selected-text;
+              font-weight: 600;
+
+              .anticon {
+                color: $sidebar-item-selected-text;
+              }
+            }
+          }
+
+          .ant-menu-sub {
+            background: transparent !important;
+
+            .ant-menu-item {
+              padding-left: 39px !important;
+            }
+          }
+        }
+      }
+
+      // Dark 模式菜单样式
+      &.ant-menu-dark {
+        background: transparent !important;
+
+        .ant-menu-item {
+          height: 37px;
+          line-height: 37px;
+          margin: 1px 0;
+          padding: 0 12px !important;
+          border-radius: 10px;
+          color: $sidebar-text-secondary-dark;
+          font-size: 14px;
+          transition: all 0.15s ease;
+
+          &:hover {
+            color: $sidebar-text-primary-dark;
+            background: rgba(255, 255, 255, 0.06);
+          }
+
+          &.ant-menu-item-selected {
+            color: $sidebar-item-selected-text-dark;
+            background: $sidebar-item-selected-bg-dark;
+            font-weight: 600;
+
+            .anticon {
+              color: $sidebar-item-selected-text-dark;
+            }
+          }
+
+          .anticon {
+            font-size: 17px;
+            margin-right: 10px;
+            color: $sidebar-text-tertiary-dark;
+          }
+        }
+
+        .ant-menu-submenu {
+          .ant-menu-submenu-title {
+            height: 37px;
+            line-height: 37px;
+            margin: 1px 0;
+            padding: 0 12px !important;
+            border-radius: 10px;
+            color: $sidebar-text-secondary-dark;
+
+            &:hover {
+              color: $sidebar-text-primary-dark;
+              background: rgba(255, 255, 255, 0.06);
+            }
+
+            .anticon {
+              font-size: 17px;
+              margin-right: 10px;
+              color: $sidebar-text-tertiary-dark;
+            }
+          }
+
+          .ant-menu-sub {
+            background: transparent !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Logo 区域 - Apple HIG 风格
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 0 20px;
+}
+
+.logoLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logoText {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.logoTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: $sidebar-text-primary;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.logoSubtitle {
+  font-size: 11px;
+  font-weight: 400;
+  color: $sidebar-text-quaternary;
+  line-height: 1.2;
+  letter-spacing: 0.006em;
+}
+
+// 收缩菜单按钮
+.collapseBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #636366;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.08);
+    color: #3A3A3C;
+  }
+
+  .anticon {
+    font-size: 14px;
+  }
+}
+
+// 搜索框
+.searchBox {
+  margin: 0 16px 12px;
+  height: 36px;
+  background: $sidebar-input-bg;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.15);
+  }
+
+  :global {
+    .anticon {
+      font-size: 13px;
+      color: $sidebar-text-quaternary;
+    }
+  }
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: $sidebar-text-secondary;
+  padding: 0;
+  height: 100%;
+
+  &::placeholder {
+    color: $sidebar-text-quaternary;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+// 菜单分组标题
+.menuGroupTitle {
+  padding: 8px 20px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: $sidebar-text-quaternary;
+  text-transform: uppercase;
+  letter-spacing: 0.066em;
+  line-height: 1.5;
+}
+
+// 侧边栏底部区域
+.sidebarFooter {
+  padding: 12px;
+  border-top: 1px solid $sidebar-divider;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarFooterCollapsed {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// 分割线
+.divider {
+  height: 1px;
+  background: $sidebar-divider;
+  margin: 8px 0;
+  width: 100%;
+}
+
+// 侧边栏菜单项（设置等）
+.sidebarMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 8px;
+
+  &:hover {
+    background: $sidebar-item-hover-bg;
+  }
+}
+
+.sidebarMenuItemCollapsed {
+  justify-content: center;
+  padding: 10px;
+  margin-bottom: 0;
+  width: 48px;
+  height: 37px;
+}
+
+// 主题切换按钮
+.themeToggle {
+  height: 36px;
+  background: $sidebar-input-bg;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.15);
+  }
+}
+
+.themeToggleCollapsed {
+  justify-content: center;
+  width: 48px;
+  height: 37px;
+  padding: 0;
+  margin: 0;
+}
+
+.themeToggleText {
+  font-size: 13px;
+  font-weight: 500;
+  color: $sidebar-text-tertiary;
+  line-height: 1.5;
+}
+
+.themeToggleIcon {
+  width: 14px;
+  height: 14px;
+  color: $sidebar-text-tertiary;
+}
+
+// 侧边栏用户信息区域
+.sidebarUserSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $sidebar-item-hover-bg;
+  }
+}
+
+.sidebarUserSectionCollapsed {
+  justify-content: center;
+  padding: 4px;
+  width: 48px;
+  height: 37px;
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #FFFFFF;
+    line-height: 1;
+  }
+}
+
+.sidebarUserInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebarUserName {
+  font-size: 13px;
+  font-weight: 500;
+  color: $sidebar-text-primary;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarUserRole {
+  font-size: 11px;
+  font-weight: 400;
+  color: $sidebar-text-quaternary;
+  line-height: 1.5;
+}
+
+.userArrow {
+  width: 13px;
+  height: 13px;
+  color: $sidebar-text-quaternary;
+}
+
+// 收缩/展开切换按钮
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: $sidebar-text-tertiary;
+
+  &:hover {
+    background: $sidebar-item-hover-bg;
+    color: $sidebar-text-primary;
+  }
+
+  :global(.anticon) {
+    font-size: 14px;
+  }
+}
+
+.collapseToggleCollapsed {
+  justify-content: center;
+  padding: 10px;
+  width: 48px;
+  height: 37px;
+}
+
+.collapseToggleText {
+  font-size: 13px;
+  font-weight: 500;
+  color: $sidebar-text-tertiary;
+}
+
+// Logo 收缩状态
+.logoCollapsed {
+  justify-content: center;
+  padding: 0 16px;
+}
+
+// ==================== Dark 模式覆盖 ====================
+:global(.dark) {
+  .sider {
+    background: $sidebar-bg-dark !important;
+    border-right-color: $sidebar-border-dark;
+  }
+
+  .logoTitle {
+    color: $sidebar-text-primary-dark;
+  }
+
+  .logoSubtitle {
+    color: $sidebar-text-quaternary-dark;
+  }
+
+  // Dark 模式菜单样式
+  .sider :global {
+    .ant-menu.ant-menu-dark {
+      // 深色模式滚动条
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+
+      .ant-menu-item {
+        color: $sidebar-text-secondary-dark;
+
+        &:hover {
+          color: $sidebar-text-primary-dark;
+          background: $sidebar-hover-bg-dark;
+        }
+
+        &.ant-menu-item-selected {
+          color: $sidebar-item-selected-text-dark;
+          background: $sidebar-item-selected-bg-dark;
+          font-weight: 600;
+
+          .anticon {
+            color: $sidebar-item-selected-text-dark;
+          }
+        }
+
+        .anticon {
+          color: $sidebar-text-tertiary-dark;
+        }
+      }
+
+      .ant-menu-submenu {
+        .ant-menu-submenu-title {
+          color: $sidebar-text-secondary-dark;
+
+          &:hover {
+            color: $sidebar-text-primary-dark;
+            background: $sidebar-hover-bg-dark;
+          }
+
+          .anticon {
+            color: $sidebar-text-tertiary-dark;
+          }
+        }
+
+        &.ant-menu-submenu-selected {
+          .ant-menu-submenu-title {
+            color: $sidebar-item-selected-text-dark;
+            font-weight: 600;
+
+            .anticon {
+              color: $sidebar-item-selected-text-dark;
+            }
+          }
+        }
+
+        .ant-menu-sub {
+          background: transparent !important;
+
+          .ant-menu-item {
+            padding-left: 39px !important;
+          }
+        }
+      }
+    }
+  }
+
+  .collapseToggle {
+    color: $sidebar-text-tertiary-dark;
+
+    &:hover {
+      background: $sidebar-hover-bg-dark;
+      color: $sidebar-text-secondary-dark;
+    }
+  }
+
+  .collapseToggleText {
+    color: $sidebar-text-tertiary-dark;
+  }
+
+  .searchBox {
+    background: $sidebar-input-bg-dark;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    :global {
+      .anticon {
+        color: $sidebar-text-quaternary-dark;
+      }
+    }
+  }
+
+  .searchInput {
+    color: $sidebar-text-secondary-dark;
+
+    &::placeholder {
+      color: $sidebar-text-quaternary-dark;
+    }
+  }
+
+  .menuGroupTitle {
+    color: $sidebar-text-quaternary-dark;
+  }
+
+  .sidebarFooter {
+    border-top-color: $sidebar-divider-dark;
+  }
+
+  .divider {
+    background: $sidebar-divider-dark;
+  }
+
+  .sidebarMenuItem {
+    &:hover {
+      background: $sidebar-hover-bg-dark;
+    }
+  }
+
+  .themeToggle {
+    background: $sidebar-input-bg-dark;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .themeToggleText {
+    color: $sidebar-text-tertiary-dark;
+  }
+
+  .themeToggleIcon {
+    color: $sidebar-text-tertiary-dark;
+  }
+
+  .sidebarUserSection {
+    &:hover {
+      background: $sidebar-hover-bg-dark;
+    }
+  }
+
+  .sidebarUserName {
+    color: $sidebar-text-primary-dark;
+  }
+
+  .sidebarUserRole {
+    color: $sidebar-text-quaternary-dark;
+  }
+
+  .userArrow {
+    color: $sidebar-text-quaternary-dark;
+  }
+}
+
+// ==================== 头部样式 ====================
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  height: 65px;
+  background: rgba(242, 242, 247, 0.85);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1C1C1E;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+// 主题切换器
+.themeSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  height: 36px;
+  background: rgba(120, 120, 128, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(120, 120, 128, 0.12);
+}
+
+.themeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #636366;
+  font-size: 14px;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.12);
+    color: #1C1C1E;
+  }
+
+  &.themeBtnActive {
+    background: #007AFF;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+
+    &:hover {
+      background: #007AFF;
+      color: #fff;
+    }
+  }
+}
+
+.headerUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 36px;
+  background: rgba(120, 120, 128, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.16);
+  }
+}
+
+.headerUserAvatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+  border-radius: 50%;
+  
+  span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.headerUserName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1C1C1E;
+}
+
+.headerDropdownIcon {
+  font-size: 10px;
+  color: #8E8E93;
+}
+
+.headerIconBtn {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(120, 120, 128, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(120, 120, 128, 0.16);
+  }
+}
+
+.headerIconInner {
+  font-size: 14px;
+  color: #636366;
+}
+
+.headerNotificationDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #FF3B30;
+  border-radius: 50%;
+}
+
+// TAB 栏样式 - Apple HIG 风格
+.tabBar {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  padding-left: 16px;
+  background: rgba(242, 242, 247, 0.7);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden; // 防止内容溢出
+  
+  // TAB 快捷操作按钮
+  .tabActions {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    border-left: 1px solid rgba(0, 0, 0, 0.06);
+    margin-left: 8px;
+    flex-shrink: 0; // 防止被压缩
+  }
+
+  :global {
+    .ant-tabs {
+      height: 100%;
+      flex: 1;
+      min-width: 0; // 允许收缩
+      overflow: hidden; // 防止溢出
+    }
+
+    .ant-tabs-nav {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center; // 垂直居中
+
+      &::before {
+        border-bottom: none;
+      }
+    }
+
+    .ant-tabs-nav-wrap {
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      height: 100%;
+      padding: 7px 0; // 上下padding让TAB垂直居中
+      
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .ant-tabs-nav-list {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+      height: 100%;
+    }
+
+    .ant-tabs-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      padding: 0 10px;
+      margin: 0 !important;
+      background: transparent;
+      border: none !important;
+      border-radius: 8px !important;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(120, 120, 128, 0.08);
+      }
+
+      &.ant-tabs-tab-active {
+        background: #FFFFFF;
+        box-shadow: 0px 0px 0px 0.5px rgba(0, 0, 0, 0.06), 0px 1px 3px rgba(0, 0, 0, 0.1);
+
+        .ant-tabs-tab-btn {
+          color: #1C1C1E;
+          font-weight: 500;
+        }
+
+        .ant-tabs-tab-remove {
+          color: #3A3A3C;
+          opacity: 1;
+        }
+      }
+
+      .ant-tabs-tab-btn {
+        display: flex;
+        align-items: center;
+        color: #636366;
+        font-size: 12px;
+        font-weight: 400;
+        white-space: nowrap;
+        line-height: 18px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+        // 图标样式
+        .anticon {
+          font-size: 12px;
+          margin-right: 6px;
+          color: inherit;
+        }
+      }
+
+      .ant-tabs-tab-remove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-left: 4px;
+        margin-right: -4px;
+        padding: 0;
+        color: #8E8E93;
+        font-size: 9px;
+        opacity: 0;
+        transition: all 0.15s ease;
+        border-radius: 4px;
+
+        &:hover {
+          color: #FF3B30;
+          background: rgba(255, 59, 48, 0.1);
+        }
+      }
+
+      &:hover .ant-tabs-tab-remove {
+        opacity: 1;
+      }
+    }
+
+    .ant-tabs-nav-operations {
+      display: none;
+    }
+  }
+}
+
+// 内容区域
+.content {
+  padding: vars.$space-6;
+  background: vars.$body-background;
+  height: calc(100vh - 64px - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  // 页面容器 - 用于表格页面的全屏布局
+  :global(.pageContainer) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  // 筛选区域
+  :global(.filterBar) {
+    flex-shrink: 0;
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  // 表格容器
+  :global(.tableContainer) {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 16px;
+
+    :global(.ant-table-wrapper) {
+      height: 100%;
+
+      :global(.ant-spin-nested-loading) {
+        height: 100%;
+
+        :global(.ant-spin-container) {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+      }
+
+      :global(.ant-table) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        :global(.ant-table-container) {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          :global(.ant-table-body) {
+            flex: 1;
+            overflow: auto !important;
+          }
+        }
+      }
+
+      :global(.ant-pagination) {
+        flex-shrink: 0;
+        padding: 16px 0;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// ==================== 暗黑模式适配 ====================
+:global(.dark) {
+  // 内容区域背景
+  .content {
+    background: $body-bg-dark;
+  }
+
+  .header {
+    background: $header-bg-dark;
+    border-bottom-color: $sidebar-border-dark;
+  }
+  
+  .headerTitle {
+    color: $sidebar-text-secondary-dark;
+  }
+  
+  .headerUserInfo {
+    background: $sidebar-input-bg-dark;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .headerUserName {
+    color: $sidebar-text-secondary-dark;
+  }
+  
+  .headerDropdownIcon {
+    color: $sidebar-text-tertiary-dark;
+  }
+  
+  .headerIconBtn {
+    background: $sidebar-input-bg-dark;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .headerIconInner {
+    color: $sidebar-text-tertiary-dark;
+  }
+  
+  // TAB 栏暗黑模式
+  .tabBar {
+    background: rgba(28, 28, 30, 0.85);
+    border-bottom-color: $sidebar-border-dark;
+
+    :global {
+      .ant-tabs-tab {
+        &:hover {
+          background: $sidebar-hover-bg-dark;
+        }
+
+        &.ant-tabs-tab-active {
+          background: $sidebar-card-bg-dark;
+          box-shadow: 0px 0px 0px 0.5px rgba(255, 255, 255, 0.1), 0px 1px 3px rgba(0, 0, 0, 0.3);
+
+          .ant-tabs-tab-btn {
+            color: $sidebar-text-secondary-dark;
+            font-weight: 500;
+          }
+
+          .ant-tabs-tab-remove {
+            color: $sidebar-text-tertiary-dark;
+          }
+        }
+
+        .ant-tabs-tab-btn {
+          color: $sidebar-text-tertiary-dark;
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+          // 图标样式
+          .anticon {
+            font-size: 12px;
+            margin-right: 6px;
+            color: inherit;
+          }
+        }
+
+        .ant-tabs-tab-remove {
+          color: $sidebar-text-quaternary-dark;
+
+          &:hover {
+            color: #FF453A;
+            background: rgba(255, 69, 58, 0.15);
+          }
+        }
+      }
+    }
+  }
+}

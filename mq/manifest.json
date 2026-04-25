@@ -1,0 +1,6 @@
+{
+  "name": "MQ操作",
+  "description": "消息队列操作工具。支持 Kafka、RabbitMQ、RocketMQ，支持查看主题/队列、消费组、消息堆积、消息采样等。触发词：MQ、消息队列、Kafka、RabbitMQ、RocketMQ、查堆积、查消费组、消息队列管理",
+  "normalizedName": "mq",
+  "category": "开发"
+}

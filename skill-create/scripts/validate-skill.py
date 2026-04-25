@@ -2,7 +2,7 @@
 """
 技能创建质量验证脚本
 
-验证技能目录是否符合 skill-review 规范，确保一次性通过审查。
+验证技能目录是否符合 skill-check 规范，确保一次性通过审查。
 
 用法:
     python3 scripts/validate-skill.py <skill-dir>

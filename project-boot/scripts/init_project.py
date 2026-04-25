@@ -9,6 +9,7 @@ import os
 import sys
 import shutil
 import re
+import json
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -19,47 +20,84 @@ TEMPLATES_DIR = os.path.join(SKILL_DIR, 'templates')
 
 # 需要跳过的目录和文件
 SKIP_DIRS = {'.git', 'node_modules', 'target', 'dist', '.idea', '.vscode', '__pycache__', '.planning'}
-SKIP_FILES = {'.DS_Store', 'init_project.py', 'README.md'}
-
-# 目录重命名映射（支持占位符）
-DIR_RENAMES = {
-    'your_project_name-server': '{project_name}-server',
-    'your_project_name-api': '{project_name}-api',
-    'your_project_name-auth': '{project_name}-auth',
-    'your_project_name-common': '{project_name}-common',
-    'your_project_name-gateway': '{project_name}-gateway',
-    'your_project_name-platform': '{project_name}-platform',
-    'your_project_name-admin': '{project_name}-admin',
-}
+SKIP_FILES = {'.DS_Store', 'init_project.py'}
 
 
-def build_replacements(group_name: str, project_name: str, project_desc: str) -> Dict[str, str]:
-    """构建完整的替换映射表"""
-    project_desc_short = project_desc.replace('管理系统', '').replace('系统', '')
+def load_template_config(template_path: str) -> Dict:
+    """读取模板的 _project.json 配置文件"""
+    project_json = os.path.join(template_path, '_project.json')
+    if not os.path.exists(project_json):
+        print(f"❌ 模板配置文件不存在: {project_json}")
+        sys.exit(1)
     
-    # 模板中的占位符（小写和大写版本）
-    old_group = 'your_group_name'
-    old_project = 'your_project_name'
-    old_group_upper = old_group.upper()
-    old_project_upper = old_project.upper()
+    try:
+        with open(project_json, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        return config
+    except Exception as e:
+        print(f"❌ 读取模板配置文件失败: {e}")
+        sys.exit(1)
+
+
+def build_replacements_from_config(config: Dict, user_inputs: Dict[str, str]) -> Dict[str, str]:
+    """
+    根据模板配置和用户输入构建替换映射表
     
-    replacements = {
-        # 全局替换占位符（核心规则 - 小写）
-        # 注意：your_project_name 只替换为 project_name，不包含 group_name
-        old_project: project_name,
-        old_group: group_name,
+    Args:
+        config: _project.json 的配置内容
+        user_inputs: 用户提供的变量值 {placeholder: value}
+    
+    Returns:
+        完整的替换映射表
+    """
+    replacements_config = config.get('replacements', {})
+    if not replacements_config:
+        print("⚠️  模板配置中未定义 replacements 字段")
+        return {}
+    
+    replacements = {}
+    
+    # 按顺序处理每个占位符
+    for placeholder, description in replacements_config.items():
+        if placeholder not in user_inputs:
+            print(f"❌ 缺少必填变量: {placeholder} ({description})")
+            sys.exit(1)
         
-        # 全局替换占位符（大写版本）
-        old_project_upper: project_name.upper(),
-        old_group_upper: group_name.upper(),
+        user_value = user_inputs[placeholder]
         
-        # 项目描述
-        '模板示例平台': project_desc,
-        '模板': project_desc_short,
-        'XXX平台': project_desc,
-    }
+        # 基础替换
+        replacements[placeholder] = user_value
+        
+        # 自动生成大写版本（如果占位符是全小写且不是单个词）
+        if placeholder.islower() and len(placeholder) > 0:
+            replacements[placeholder.upper()] = user_value.upper()
     
     return replacements
+
+
+def get_replacements_questions(template_path: str) -> List[Dict[str, str]]:
+    """
+    获取模板需要用户提供的变量列表（供大模型组织问题使用）
+    
+    Returns:
+        [{
+            'placeholder': 'your_project_name',
+            'description': '项目英文名',
+            'question': '请提供您的项目英文名'
+        }, ...]
+    """
+    config = load_template_config(template_path)
+    replacements_config = config.get('replacements', {})
+    
+    questions = []
+    for placeholder, description in replacements_config.items():
+        questions.append({
+            'placeholder': placeholder,
+            'description': description,
+            'question': f'请提供您的{description}'
+        })
+    
+    return questions
 
 
 def should_skip_file(file_path: str) -> bool:
@@ -113,70 +151,45 @@ def replace_content_in_file(file_path: str, replacements: Dict[str, str]) -> int
 
 
 
-def rename_directory_structure(dest_dir: str, group_name: str, project_name: str) -> int:
-    """重命名目录结构：先替换 your_project_name，再替换 your_group_name（包含大小写）"""
+def rename_directory_structure(dest_dir: str, replacements: Dict[str, str]) -> int:
+    """重命名目录结构：根据 replacements 中的占位符进行重命名"""
     renamed_count = 0
     dest_path = Path(dest_dir)
     
-    old_group = 'your_group_name'
-    old_project = 'your_project_name'
-    old_group_upper = old_group.upper()
-    old_project_upper = old_project.upper()
+    # 从 replacements 中提取原始占位符（小写的，不要求必须有下划线）
+    placeholders = [k for k in replacements.keys() if k.islower() and not k.isupper()]
     
-    # 第一步：重命名包含 your_project_name 的目录（小写和大写）
-    # 收集所有需要重命名的目录
-    dirs_to_rename = []
-    for root, dirs, files in os.walk(dest_dir):
-        for dir_name in dirs:
-            # 跳过 target、node_modules 等目录
-            if dir_name in ('target', 'node_modules', 'dist'):
-                continue
-            # 替换 your_project_name（不区分大小写）
-            if old_project in dir_name.lower():
-                old_path = Path(root) / dir_name
-                # 保持原有大小写模式进行替换
-                new_name = dir_name.replace(old_project, project_name).replace(old_project_upper, project_name.upper())
-                new_path = Path(root) / new_name
-                dirs_to_rename.append((old_path, new_path))
-    
-    # 从重到深排序，避免父目录先重命名导致子目录路径错误
-    dirs_to_rename.sort(key=lambda x: len(str(x[0])), reverse=True)
-    
-    for old_path, new_path in dirs_to_rename:
-        if old_path.exists() and old_path != new_path:
-            try:
-                old_path.rename(new_path)
-                renamed_count += 1
-                print(f"  📁 重命名目录: {old_path.name} → {new_path.name}")
-            except Exception as e:
-                print(f"  ❌ 重命名失败 {old_path.name}: {e}")
-    
-    # 第二步：重命名包含 your_group_name 的目录（小写和大写）
-    dirs_to_rename = []
-    for root, dirs, files in os.walk(dest_dir):
-        for dir_name in dirs:
-            # 跳过 target、node_modules 等目录
-            if dir_name in ('target', 'node_modules', 'dist'):
-                continue
-            # 替换 your_group_name（不区分大小写）
-            if old_group in dir_name.lower():
-                old_path = Path(root) / dir_name
-                # 保持原有大小写模式进行替换
-                new_name = dir_name.replace(old_group, group_name).replace(old_group_upper, group_name.upper())
-                new_path = Path(root) / new_name
-                dirs_to_rename.append((old_path, new_path))
-    
-    # 从重到深排序
-    dirs_to_rename.sort(key=lambda x: len(str(x[0])), reverse=True)
-    
-    for old_path, new_path in dirs_to_rename:
-        if old_path.exists() and old_path != new_path:
-            try:
-                old_path.rename(new_path)
-                renamed_count += 1
-                print(f"  📁 重命名目录: {old_path.name} → {new_path.name}")
-            except Exception as e:
-                print(f"  ❌ 重命名失败 {old_path.name}: {e}")
+    # 按占位符顺序依次重命名
+    for placeholder in placeholders:
+        new_value = replacements[placeholder]
+        placeholder_upper = placeholder.upper()
+        
+        # 收集所有需要重命名的目录
+        dirs_to_rename = []
+        for root, dirs, files in os.walk(dest_dir):
+            for dir_name in dirs:
+                # 跳过 target、node_modules 等目录
+                if dir_name in ('target', 'node_modules', 'dist'):
+                    continue
+                # 检查是否包含占位符（不区分大小写）
+                if placeholder in dir_name.lower():
+                    old_path = Path(root) / dir_name
+                    # 保持原有大小写模式进行替换
+                    new_name = dir_name.replace(placeholder, new_value).replace(placeholder_upper, new_value.upper())
+                    new_path = Path(root) / new_name
+                    dirs_to_rename.append((old_path, new_path))
+        
+        # 从深到浅排序，避免父目录先重命名导致子目录路径错误
+        dirs_to_rename.sort(key=lambda x: len(str(x[0])), reverse=True)
+        
+        for old_path, new_path in dirs_to_rename:
+            if old_path.exists() and old_path != new_path:
+                try:
+                    old_path.rename(new_path)
+                    renamed_count += 1
+                    print(f"  📁 重命名目录: {old_path.name} → {new_path.name}")
+                except Exception as e:
+                    print(f"  ❌ 重命名失败 {old_path.name}: {e}")
     
     return renamed_count
 
@@ -184,9 +197,7 @@ def rename_directory_structure(dest_dir: str, group_name: str, project_name: str
 def copy_and_transform(
     src_dir: str,
     dest_dir: str,
-    replacements: Dict[str, str],
-    group_name: str,
-    project_name: str
+    replacements: Dict[str, str]
 ) -> Dict:
     """复制并转换项目"""
     stats = {
@@ -225,14 +236,17 @@ def copy_and_transform(
             
             # 检查文件名是否需要重命名
             dest_filename = file
-            old_group = 'your_group_name'
-            old_project = 'your_project_name'
+            
+            # 从 replacements 中提取原始占位符（小写的，不要求必须有下划线）
+            placeholders = [k for k in replacements.keys() if k.islower() and not k.isupper()]
             
             # 替换文件名中的占位符
-            if old_project in dest_filename or old_group in dest_filename:
-                dest_filename = dest_filename.replace(old_project, project_name).replace(old_group, group_name)
-                # 也处理大写版本
-                dest_filename = dest_filename.replace(old_project.upper(), project_name.upper()).replace(old_group.upper(), group_name.upper())
+            for placeholder in placeholders:
+                if placeholder in dest_filename:
+                    new_value = replacements[placeholder]
+                    dest_filename = dest_filename.replace(placeholder, new_value)
+                    # 也处理大写版本
+                    dest_filename = dest_filename.replace(placeholder.upper(), new_value.upper())
             
             dest_file = dest_root / dest_filename
             
@@ -253,7 +267,7 @@ def copy_and_transform(
     
     # 重命名目录（包括 Java 包目录）
     print(f"\n📁 正在重命名目录...")
-    stats['dirs_renamed'] = rename_directory_structure(dest_dir, group_name, project_name)
+    stats['dirs_renamed'] = rename_directory_structure(dest_dir, replacements)
     
     # 删除 _project.json 文件（模板元数据，不需要复制到目标项目）
     project_json = dest_path / '_project.json'
@@ -267,56 +281,28 @@ def copy_and_transform(
     return stats
 
 
-def validate_project(project_path: str, group_name: str, project_name: str) -> List[str]:
+def validate_project(project_path: str, replacements: Dict[str, str]) -> List[str]:
     """验证生成的项目是否正确"""
     issues = []
     project_path = Path(project_path)
     
-    # 检查关键目录是否存在
-    required_dirs = [
-        f'{project_name}-server',
-        f'{project_name}-api',
-        f'{project_name}-auth',
-        f'{project_name}-common',
-        f'{project_name}-gateway',
-        f'{project_name}-platform',
-        f'{project_name}-admin',
-    ]
+    # 从 replacements 中提取原始占位符（小写的，不要求必须有下划线）
+    placeholders = [k for k in replacements.keys() if k.islower() and not k.isupper()]
     
-    for dir_name in required_dirs:
-        if not (project_path / dir_name).exists():
-            issues.append(f"缺少目录: {dir_name}")
-    
-    # 检查父 POM 文件
-    pom_file = project_path / 'pom.xml'
-    if pom_file.exists():
-        with open(pom_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-            if f'<artifactId>{group_name}-{project_name}</artifactId>' not in content:
-                issues.append(f"POM 文件中缺少项目 artifactId: {group_name}-{project_name}")
-    
-    # 检查是否有未替换的包名
-    java_files = list(project_path.glob('**/src/**/*.java'))
-    if java_files:
-        sample_file = java_files[0]
-        with open(sample_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-            # 检查是否还有旧的占位符包名
-            old_pattern = f'com.your_group_name.your_project_name'
-            if old_pattern in content:
-                issues.append(f"Java 文件中仍包含占位符包名 '{old_pattern}': {sample_file}")
-            
-            # 检查是否包含新的包名
-            if f'com.{group_name}.{project_name}' not in content:
-                issues.append(f"Java 文件中缺少新包名 'com.{group_name}.{project_name}': {sample_file}")
-    
-    # 检查数据库名称
-    docker_compose = project_path / 'docker-compose.yml'
-    if docker_compose.exists():
-        with open(docker_compose, 'r', encoding='utf-8') as f:
-            content = f.read()
-            if 'your_group_name' in content:
-                issues.append("docker-compose.yml 中数据库名称仍包含占位符")
+    # 检查是否还有未替换的占位符
+    all_files = list(project_path.glob('**/*'))
+    for file_path in all_files:
+        if file_path.is_file():
+            # 只检查文本文件
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    for placeholder in placeholders:
+                        if placeholder in content:
+                            issues.append(f"文件 {file_path.relative_to(project_path)} 中仍包含未替换的占位符: {placeholder}")
+                            break  # 每个文件只报告一次
+            except (UnicodeDecodeError, PermissionError):
+                continue
     
     return issues
 
@@ -324,10 +310,9 @@ def validate_project(project_path: str, group_name: str, project_name: str) -> L
 def main():
     parser = argparse.ArgumentParser(description='项目脚手架生成器')
     parser.add_argument('--template', required=True, help='模板名称（如：saas）')
-    parser.add_argument('--group-name', required=True, help='组织/公司英文名（如：your_group_name）')
-    parser.add_argument('--project-name', required=True, help='项目英文名（如：fms, crm）')
-    parser.add_argument('--project-desc', required=True, help='项目中文名（如：财务管理系统）')
     parser.add_argument('--target-path', required=True, help='目标代码工作区路径（项目将创建在该目录下）')
+    parser.add_argument('--vars', required=False, help='用户提供的变量值，JSON 格式：{"your_project_name": "fms", "your_group_name": "fengqun"}')
+    parser.add_argument('--list-questions', action='store_true', help='列出需要用户提供的变量列表（供大模型使用）')
     
     args = parser.parse_args()
     
@@ -343,34 +328,81 @@ def main():
             print('无')
         sys.exit(1)
     
-    # 构建实际目标路径：工作区 + {group-name}-{project-name}
-    project_dir_name = f"{args.group_name}-{args.project_name}"
+    # 如果只是列出问题，直接输出后退出
+    if args.list_questions:
+        questions = get_replacements_questions(template_path)
+        print(json.dumps(questions, ensure_ascii=False, indent=2))
+        sys.exit(0)
+    
+    # 加载模板配置
+    config = load_template_config(template_path)
+    
+    # 解析用户输入的变量
+    if not args.vars:
+        print("❌ 请提供 --vars 参数，格式为 JSON")
+        sys.exit(1)
+    
+    try:
+        user_inputs = json.loads(args.vars)
+    except json.JSONDecodeError as e:
+        print(f"❌ --vars 参数格式错误: {e}")
+        sys.exit(1)
+    
+    # 构建替换规则
+    replacements = build_replacements_from_config(config, user_inputs)
+    
+    # 构建实际目标路径:工作区 + 项目目录名
+    # 优先使用"组织名-项目名"格式(如 fengqun-fms)
+    # 提取所有小写占位符(不要求必须有下划线)
+    placeholders = [k for k in replacements.keys() if k.islower() and not k.isupper()]
+    
+    # 严格按照 replacements 配置的顺序来识别
+    # 第一个占位符通常是项目名，第二个通常是组织名
+    config_replacements = config.get('replacements', {})
+    
+    if len(placeholders) >= 2:
+        # 有两个或更多占位符时，按顺序识别
+        project_placeholder = placeholders[0]
+        group_placeholder = placeholders[1]
+    elif len(placeholders) == 1:
+        # 只有一个占位符时，作为项目名
+        project_placeholder = placeholders[0]
+        group_placeholder = None
+    else:
+        # 没有小写占位符，使用模板名
+        project_placeholder = None
+        group_placeholder = None
+        
+    # 构建目录名
+    if project_placeholder and group_placeholder:
+        project_dir_name = f"{replacements[group_placeholder]}-{replacements[project_placeholder]}"
+    elif project_placeholder:
+        project_dir_name = replacements[project_placeholder]
+    elif placeholders:
+        project_dir_name = replacements[placeholders[0]]
+    else:
+        project_dir_name = args.template
+    
     target_path = os.path.join(args.target_path, project_dir_name)
     
     print("=" * 60)
     print("🚀 项目脚手架生成器")
     print("=" * 60)
     print(f"📦 模板名称: {args.template}")
-    print(f"🏢 组织名称: {args.group_name}")
-    print(f"📝 项目名称: {args.project_name}")
-    print(f"📝 项目描述: {args.project_desc}")
     print(f"📂 模板路径: {template_path}")
     print(f"📂 工作区路径: {args.target_path}")
     print(f"📂 项目路径: {target_path}")
+    print(f"📋 用户变量:")
+    for placeholder, value in user_inputs.items():
+        description = config.get('replacements', {}).get(placeholder, '')
+        print(f"   {placeholder} ({description}): {value}")
     print("=" * 60)
     
-    # 验证模板存在
-    if not os.path.exists(template_path):
-        print(f"❌ 模板不存在: {template_path}")
-        sys.exit(1)
-    
-    # 构建替换规则（使用项目名作为唯一标识）
-    replacements = build_replacements(args.group_name, args.project_name, args.project_desc)
-    
-    print(f"\n📋 替换规则（前10条）:")
-    for i, (old, new) in enumerate(sorted(replacements.items(), key=len, reverse=True)[:10]):
+    print(f"\n📋 替换规则（共 {len(replacements)} 条）:")
+    for old, new in sorted(replacements.items(), key=lambda x: len(x[0]), reverse=True)[:10]:
         print(f"  {old} → {new}")
-    print(f"  ... 共 {len(replacements)} 条规则")
+    if len(replacements) > 10:
+        print(f"  ... 还有 {len(replacements) - 10} 条规则")
     
     # 检查目标路径是否存在
     if os.path.exists(target_path):
@@ -384,9 +416,7 @@ def main():
     stats = copy_and_transform(
         template_path,
         target_path,
-        replacements,
-        args.group_name,
-        args.project_name
+        replacements
     )
     
     # 输出统计信息
@@ -406,7 +436,7 @@ def main():
     
     # 验证项目
     print("\n🔍 验证项目...")
-    issues = validate_project(target_path, args.group_name, args.project_name)
+    issues = validate_project(target_path, replacements)
     if issues:
         print(f"⚠️  发现 {len(issues)} 个问题:")
         for issue in issues:
@@ -428,8 +458,6 @@ def main():
     print(f"   使用 /dbmate 技能进行数据库迁移")
     print(f"\n5. 编译后端:")
     print(f"   mvn clean install")
-    print(f"\n6. 安装前端依赖:")
-    print(f"   cd {args.project_name}-admin && pnpm install")
     print("=" * 60)
 
 

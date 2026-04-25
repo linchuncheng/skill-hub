@@ -715,6 +715,8 @@ class JSONConfigParser:
         
         
         # 解析连线关系 (格式: "源模型->目标模型")
+        # ⚠️ 注意：relations 必须是字符串数组 ["租户->用户", "用户->角色"]
+        # 禁止使用对象数组 [{"from": "租户", "to": "用户"}]，那是其他图类型的格式
         relations = []
         for rel in config.get('relations', []):
             if '->' in rel:

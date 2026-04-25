@@ -6,15 +6,17 @@
 
 ## 目录
 
-- [基本登录流程](#基本登录流程)
-- [保存认证状态](#保存认证状态)
-- [恢复认证](#恢复认证)
-- [OAuth / SSO 流程](#oauth--sso-流程)
-- [双因素认证](#双因素认证)
-- [HTTP 基本认证](#http-基本认证)
-- [基于 Cookie 的认证](#基于-cookie-的认证)
-- [令牌刷新处理](#令牌刷新处理)
-- [安全最佳实践](#安全最佳实践)
+- [认证模式](#认证模式)
+  - [目录](#目录)
+  - [基本登录流程](#基本登录流程)
+  - [保存认证状态](#保存认证状态)
+  - [恢复认证](#恢复认证)
+  - [OAuth / SSO 流程](#oauth--sso-流程)
+  - [双因素认证](#双因素认证)
+  - [HTTP 基本认证](#http-基本认证)
+  - [基于 Cookie 的认证](#基于-cookie-的认证)
+  - [令牌刷新处理](#令牌刷新处理)
+  - [安全最佳实践](#安全最佳实践)
 
 ## 基本登录流程
 
@@ -86,7 +88,7 @@ agent-browser snapshot -i
 # 填写 Google 凭据
 agent-browser fill @e1 "user@gmail.com"
 agent-browser click @e2  # 下一步按钮
-agent-browser wait 2000
+agent-browser wait 1000
 agent-browser snapshot -i
 agent-browser fill @e3 "password"
 agent-browser click @e4  # 登录

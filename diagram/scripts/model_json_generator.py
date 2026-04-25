@@ -223,6 +223,10 @@ class ParamParser:
         
         返回格式: ["源模型->目标模型", ...]
         使用中文模型名，与--models参数中的中文名一致
+        
+        ⚠️ 注意：返回的是字符串数组，不是对象数组
+        正确：["租户->用户", "用户->角色"]
+        错误：[{"from": "租户", "to": "用户"}]
         """
         if not rel_str:
             return []
@@ -347,6 +351,8 @@ class JSONGenerator:
                 }
                 for d in config.domains
             ],
+            # ⚠️ relations 必须是字符串数组：["租户->用户", "用户->角色"]
+            # 禁止使用对象数组：[{"from": "租户", "to": "用户"}]
             'relations': config.relations
         }
 

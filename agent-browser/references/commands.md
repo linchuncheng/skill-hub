@@ -100,7 +100,7 @@ agent-browser record restart ./take2.webm # 停止当前 + 开始新的
 
 ```bash
 agent-browser wait @e1                     # 等待元素出现
-agent-browser wait 2000                    # 等待指定毫秒数
+agent-browser wait 1000                    # 等待指定毫秒数
 agent-browser wait --text "Success"        # 等待文本出现（或 -t）
 agent-browser wait --url "**/dashboard"    # 等待 URL 匹配模式（或 -u）
 agent-browser wait --load networkidle      # 等待网络空闲（或 -l）

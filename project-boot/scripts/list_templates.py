@@ -111,6 +111,22 @@ def main():
                     print(f"   前端模块:")
                     for module in template['modules']['frontend']:
                         print(f"     • {module}")
+            
+            # 输出替换变量列表（带顺序编号）
+            project_file = os.path.join(template['path'], '_project.json')
+            if os.path.exists(project_file):
+                try:
+                    import json
+                    with open(project_file, 'r', encoding='utf-8') as f:
+                        json_data = json.load(f)
+                        replacements = json_data.get('replacements', {})
+                        if replacements:
+                            print(f"   需要提供的变量（按顺序）:")
+                            for idx, (placeholder, description) in enumerate(replacements.items(), 1):
+                                print(f"     {idx}. {placeholder}: {description}")
+                            print(f"   ⚠️  注意：请按上述顺序传递变量，第一个通常是项目名，第二个通常是组织名")
+                except Exception as e:
+                    pass  # 静默失败，不影响主流程
     
     print("\n" + "=" * 60)
     print(f"共 {len(templates)} 个模板")

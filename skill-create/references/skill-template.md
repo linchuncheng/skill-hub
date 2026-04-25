@@ -158,6 +158,14 @@ if __name__ == "__main__":
 - [ ] 包含「错误处理」章节
 - [ ] 包含「禁止事项」章节
 
+### 语义树检查
+
+- [ ] 核心章节标注工作流步骤（步骤N:阶段名）
+- [ ] 标题使用决策树/系统化命名（非「指南」「方案」）
+- [ ] 无重复内容（模板、示例、说明只出现一次）
+- [ ] 逻辑链条完整（诊断→识别→方案→示例）
+- [ ] 无冗余标题前缀（问题:xxx、示例:xxx）
+
 ### 执行确定性检查
 
 - [ ] 无模糊目录指代（合适的目录、相关目录、目标目录）
@@ -240,15 +248,19 @@ if __name__ == "__main__":
 
 ## 验证命令
 
-创建完成后，运行验证脚本：
+创建完成后，从 skill-create 技能目录运行验证脚本（**不要将验证脚本复制到目标技能中**）：
 
 ```bash
-python3 scripts/validate-skill.py <skill-dir>
+# 找到 skill-create 技能目录
+SKILL_CREATE_DIR="$(find ~/.qoder/skills -maxdepth 1 -name 'skill-create' -type d 2>/dev/null || find .qoder/skills -maxdepth 1 -name 'skill-create' -type d 2>/dev/null)"
+
+# 执行验证
+python3 "$SKILL_CREATE_DIR/scripts/validate-skill.py" <skill-dir>
 ```
 
 **示例**：
 ```bash
-python3 scripts/validate-skill.py ./my-new-skill
+python3 "$SKILL_CREATE_DIR/scripts/validate-skill.py" ./my-new-skill
 ```
 
 **输出解读**：
@@ -276,4 +288,4 @@ python3 scripts/validate-skill.py ./my-new-skill
 完成交付（输出摘要）
 ```
 
-遵循此模板和检查清单，可以确保创建的技能一次性通过 skill-review 审查，避免后续反复修改。
+遵循此模板和检查清单，可以确保创建的技能一次性通过 skill-check 审查，避免后续反复修改。

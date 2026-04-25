@@ -1,15 +1,17 @@
 # 基础设施 Docker Compose
 # 包含：MySQL、Redis、Nacos
-# 项目名称已设置为 infra，可被多个项目共享
+# 
+# ⚠️ 多项目共享设计：
+#   所有项目使用同一份 docker-compose.yml，启动同一套基础设施
+#   通过固定 name 和 container_name 确保不会重复创建
 # 
 # 使用方式：
-#   docker-compose up -d  # 启动基础设施
+#   cd docker && docker-compose up -d  # 任意项目执行，都启动同一套 infra
 #   
-# 其他项目引用此基础设施：
-#   在项目的 docker-compose.yml 中添加：
-#     networks:
-#       infra:
-#         external: true
+# 数据隔离：
+#   - MySQL：不同项目使用不同 database
+#   - Redis：不同项目使用不同 DB index（0-15）
+#   - Nacos：不同项目使用不同 namespace
 
 # 设置 Compose 项目名称，使 Docker Desktop 显示为 infra
 name: infra
@@ -27,7 +29,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: your_group_name
+      MYSQL_DATABASE: fengqun
       TZ: "Asia/Shanghai"
     volumes:
       - mysql_data:/var/lib/mysql
@@ -89,6 +91,7 @@ services:
       MYSQL_SERVICE_DB_NAME: nacos
       MYSQL_SERVICE_USER: root
       MYSQL_SERVICE_PASSWORD: 123456
+      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&connectTimeout=10000&socketTimeout=30000&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true"
       NACOS_AUTH_ENABLE: "false"
       TZ: "Asia/Shanghai"
       JVM_XMS: 128m

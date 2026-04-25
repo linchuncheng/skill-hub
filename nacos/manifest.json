@@ -1,0 +1,6 @@
+{
+  "name": "Nacos操作",
+  "description": "Nacos 服务注册与发现、配置中心操作工具。支持查看服务列表、服务详情、实例状态，以及配置列表、配置内容、配置历史等。触发词：Nacos、服务发现、配置中心、注册中心、微服务治理",
+  "normalizedName": "nacos",
+  "category": "开发"
+}

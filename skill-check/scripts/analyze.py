@@ -248,22 +248,15 @@ def scan_misplaced_files(skill_path: Path) -> tuple[list[str], list[str]]:
     refs_dir = skill_path / "references"
     assets_dir = skill_path / "assets"
     
-    # 允许在根目录存在的文件（不视为错位）
-    allowed_root_files = {
-        "SKILL.md",
-        "manifest.json",
-        "README.md",  # 技能说明文档，允许在根目录
-    }
-    
     for file_path in skill_path.iterdir():
-        if file_path.is_file() and file_path.name not in allowed_root_files:
+        if file_path.is_file() and file_path.name not in ("SKILL.md", "manifest.json"):
             suffix = file_path.suffix.lower()
             
             # 资源文件
             if suffix in ASSET_EXTENSIONS:
                 if not assets_dir.exists():
                     misplaced_assets.append(file_path.name)
-            # Markdown 参考文档（排除 README.md）
+            # Markdown 参考文档
             elif suffix == ".md":
                 if not refs_dir.exists():
                     misplaced_refs.append(file_path.name)

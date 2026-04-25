@@ -1,48 +1,35 @@
 # Skill Create - 技能创建助手
 
-引导用户从零创建符合规范的高质量技能，一次性通过审查。
+一句话：有一个想法想让 Agent 帮你自动化？直接说，Agent 帮你把想法变成可发布的技能。
 
-## 功能特点
+## 能做什么
 
-- 📋 智能需求收集（4 个关键问题）
-- 🏗️ 自动结构设计（主动判断 scripts/references/assets）
-- 📝 规范内容生成（SKILL.md + manifest.json）
-- 🔧 脚本自动生成（标准 Python 模板）
-- ✅ 内置质量验证（validate-skill.py）
+- **想法变技能** —— 描述你想让 Agent 自动化的任务，Agent 会生成完整的技能包
+- **符合规范** —— 自动遵循技能市场的标准格式，减少反复修改
+- **一键验证** —— 生成后可以自动检查是否符合发布要求
 
-## 使用场景
+## 使用方法
 
-触发词："创建技能"、"新建 Skill"、"编写技能"
-
-## 工作流程
-
-需求收集 → 结构设计 → 内容生成 → 脚本创建 → 质量验证 → 完成交付
-
-## 验证脚本
-
-```bash
-python3 scripts/validate-skill.py <skill-dir>
-```
-
-## 目录结构
+推荐用 `/skill-create` 显式调用：
 
 ```
-skill-create/
-├── SKILL.md                          # 核心工作流
-├── manifest.json                     # 技能元数据
-├── README.md                         # 本文件
-├── scripts/validate-skill.py        # 质量验证脚本
-└── references/skill-template.md     # 模板和检查清单
+/skill-create 我想创建一个能自动整理周报的技能
 ```
 
-## 核心规范
+**示例**：
 
-- SKILL.md < 500 行，章节最多三级
-- description 包含功能和触发场景
-- 无模糊指代、无程度副词、无工具绑定
-- 必须包含工作流、使用说明、错误处理、禁止事项
+> /skill-create 帮我创建一个能查询数据库的技能
+>
+> /skill-create 我想做一个自动生成架构图的工具
+>
+> /skill-create 新建一个查订单状态的功能
 
-## 参考资料
+Agent 会引导你补充关键信息，然后生成完整的技能目录，包含 SKILL.md、manifest.json 等必要文件。
 
-- 技能模板 → [references/skill-template.md](references/skill-template.md)
-- 审查规范 → [../skill-review/SKILL.md](../skill-review/SKILL.md)
+## 举个例子
+
+比如你觉得每次让 Agent 查数据库都要反复说明连接信息，很麻烦：
+
+> "我想创建一个技能，让 Agent 可以直接用自然语言查 MySQL 数据库"
+
+Agent 会问你几个关键问题（比如支持哪些数据库、常见的查询场景），然后生成一个完整的技能包。你可以直接拿去发布到技能市场。

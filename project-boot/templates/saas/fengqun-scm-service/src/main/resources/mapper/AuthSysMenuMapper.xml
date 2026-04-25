@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fengqun.scm.platform.mapper.AuthSysMenuMapper">
+
+    <!-- 根据用户ID查询菜单列表，包含默认菜单 -->
+    <select id="selectMenusByUserIdWithDefault" resultType="com.fengqun.scm.platform.entity.SysMenu">
+        SELECT DISTINCT m.* FROM sys_menu m
+        WHERE m.status = 1 AND m.deleted = 0
+        AND (
+            m.menu_path IN
+            <foreach collection="defaultPaths" item="path" open="(" separator="," close=")">
+                #{path}
+            </foreach>
+            OR EXISTS (
+                SELECT 1 FROM sys_role_menu rm
+                JOIN sys_user_role ur ON rm.role_id = ur.role_id
+                WHERE ur.user_id = #{userId} AND rm.menu_id = m.id
+            )
+        )
+        ORDER BY m.sort ASC
+    </select>
+
+</mapper>

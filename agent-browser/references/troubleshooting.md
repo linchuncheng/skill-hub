@@ -127,7 +127,7 @@ agent-browser scroll down 500
 agent-browser snapshot -i
 
 # 2. 等待动态内容加载
-agent-browser wait 2000
+agent-browser wait 1000
 agent-browser snapshot -i
 
 # 3. 快照特定区域

@@ -8,7 +8,7 @@ importers:
 
   .: {}
 
-  your_project_name-admin:
+  fengqun-scm-admin:
     dependencies:
       '@ant-design/icons':
         specifier: ^5.2.6

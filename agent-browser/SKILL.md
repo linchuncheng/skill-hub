@@ -198,7 +198,7 @@ agent-browser get title               # 获取页面标题
 agent-browser wait @e1                # 等待元素出现
 agent-browser wait --load networkidle # 等待网络空闲
 agent-browser wait --url "**/page"    # 等待 URL 匹配模式
-agent-browser wait 2000               # 等待指定毫秒数
+agent-browser wait 1000               # 等待指定毫秒数
 
 # 捕获
 agent-browser screenshot              # 截图保存到临时目录

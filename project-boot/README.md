@@ -1,65 +1,39 @@
-# Project Boot - 项目脚手架生成器
+# Project Boot - 项目启动器
 
-基于模板快速生成微服务项目脚手架，自动替换项目名、包名等关键信息。
+想开一个全新项目？选个模板，剩下的交给 Agent。
 
-## 功能特性
+## 能做什么
 
-- ✅ **多模板支持** - 提供多种项目模板（目前只有SaaS）
-- ✅ **一键生成** - 自动替换项目名、组织名、包名等占位符
-- ✅ **完整结构** - 生成包含前后端、Docker、数据库迁移的完整项目
-- ✅ **即开即用** - 生成的项目可直接编译运行
+- **从零开始** —— 告诉 Agent 你想做什么类型的项目（CRM、SaaS、管理后台...），一键生成完整工程
+- **即开即用** —— 生成后的项目自带一键启动脚本，不需要手动配环境、改包名
+- **模板扩展** —— 团队可以把自己的项目结构做成模板，下次复用
 
-## 使用方式
+## 现有模板
 
-```bash
-# 1. 查看可用模板
-python3 scripts/list_templates.py --detail
+| 模板 | 适合做什么 | 里面有什么 |
+|------|-----------|-----------|
+| **saas** | SaaS管理后台 | 后端 + 管理后台前端，内置登录、多租户、RBAC等 |
 
-# 2. 生成项目
-python3 scripts/init_project.py \
-  --template saas \
-  --group-name fengqun \
-  --project-name fms \
-  --project-desc "财务管理系统" \
-  --target-path ~/Projects
+## 举个例子
+
+比如你想做一个客户管理系统：
+
+> "帮我初始化一个 CRM 管理后台项目"
+
+> "/project-boot 生成fengqun-crm到~/Projects下"
+
+Agent 会基于 SaaS 模板生成完整项目，包含后端服务、前端管理后台、数据库迁移脚本和 Docker 配置。生成后直接一键启动，前后端就能跑起来。
+
+## 生成后长什么样
+
+以 `saas` 模板为例：
+
 ```
-
-## 生成的项目结构
-
+你的项目/
+├── xxx-service/        # 后端服务
+├── xxx-admin/          # 管理后台前端
+├── docker/             # 容器配置
+├── sql/                # 数据库迁移脚本
+├── docker-compose.yml  # 一键拉起依赖
+└── start.sh            # 一键启动前后端
 ```
-your_project/
-├── xxx-api/          # Dubbo RPC 接口
-├── xxx-auth/         # 认证授权服务
-├── xxx-gateway/      # API 网关
-├── xxx-platform/     # 平台管理
-├── xxx-server/       # 业务服务
-├── xxx-admin/        # 管理后台前端
-├── docker/           # Docker 配置
-├── sql/              # 数据库迁移脚本
-└── pom.xml           # Maven 父 POM
-```
-
-## 快速开始
-
-```bash
-# 初始化项目
-cd your-project && git init
-
-# 启动基础设施
-docker-compose up -d
-
-# 执行数据库迁移
-# 使用 /dbmate 技能
-
-# 编译后端
-mvn clean install
-
-# 安装前端依赖
-cd xxx-admin && pnpm install
-```
-
-## 技术栈
-
-- **后端**: Java 21 | Spring Boot 3.5 | MyBatis-Plus | Dubbo | MySQL | Redis
-- **前端**: React 18 | TypeScript | Ant Design 5 | Vite
-- **DevOps**: Docker | Nacos | dbmate

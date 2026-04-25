@@ -62,15 +62,9 @@ ls sql/*.env
 sql/
 ├── local.env                # 本地环境配置
 ├── test.env                 # 测试环境配置（可选）
-├── dbmate_platform/         # 子文件夹名 = 迁移表名称
-│   ├── 20260410100000_init.sql
-│   └── 20260410100100_xxx.sql
-├── dbmate_erp/
-│   └── 20260410100000_init.sql
-├── dbmate_wms/
-│   └── 20260410100000_init.sql
-└── dbmate_tms/
-    └── 20260410120000_init.sql
+└── dbmate_xxx/              # 子文件夹名 = 迁移表名称
+    ├── 20260410100000_init.sql
+    └── 20260410100100_xxx.sql
 ```
 
 **配置优先级：**
@@ -222,16 +216,6 @@ DROP TABLE IF EXISTS sys_login_log;
 - 同一秒内创建多个文件时，手动调整最后几位
 - **不同模块可以有相同时间戳**（因为使用独立的迁移表）
 
-### 附录：模块说明（参考）
-
-> 以下为示例模块列表，实际模块以 `sql/` 目录下的子文件夹为准。
-
-| 模块文件夹 | 迁移表名 | 说明 | 文件数 |
-|-----------|---------|------|--------|
-| dbmate_platform | dbmate_platform | 平台管理（权限/菜单/字典） | 10 |
-| dbmate_erp | dbmate_erp | ERP业务（采购/供应商/商品） | 3 |
-| dbmate_wms | dbmate_wms | 仓库管理（入库/出库/库存） | 2 |
-| dbmate_tms | dbmate_tms | 运输管理（配送/线路） | 1 |
 
 ---
 
@@ -251,8 +235,8 @@ cd <项目根目录>
 bash <SKILL目录>/scripts/migrate.sh
 
 # 查看某个模块的迁移状态
-bash <SKILL目录>/scripts/migrate.sh --module=dbmate_erp --command=status
+bash <SKILL目录>/scripts/migrate.sh --module=dbmate_xxx --command=status
 
 # 回滚最后一个迁移
-bash <SKILL目录>/scripts/migrate.sh --module=dbmate_platform --command=down
+bash <SKILL目录>/scripts/migrate.sh --module=dbmate_xxx --command=down
 ```
