@@ -10,7 +10,7 @@
 | [ai-writer](ai-writer/) | 公众号文章创作、改写、排版与发布一体化流程 |
 | [dba](dba/) | 数据库操作工具，支持MySQL和PostgreSQL的数据查询、增删改、事务控制和SQL执行 |
 | [dbmate](dbmate/) | 数据库迁移工具，支持多模块动态发现、环境配置管理、迁移和回滚操作 |
-| [diagram](diagram/) | 绘制各种类型的动态SVG图，包括系统架构图、调用链路图、部署架构图、领域模型图等 |
+| [diagram](diagram/) | 绘制各种类型的动态SVG图，包括系统架构图、调用链路图、部署架构图、领域模型图、泳道图等 |
 | [project-boot](project-boot/) | 基于模板快速生成微服务项目脚手架，支持自动替换项目名、包名等关键信息 |
 | [skill-analyze](skill-analyze/) | 分析SKILL执行过程，进行复盘优化与规则沉淀，帮助持续改进技能质量 |
 | [skill-check](skill-check/) | 审查和优化现有技能（Skill）结构质量，检查规范性和完整性 |
