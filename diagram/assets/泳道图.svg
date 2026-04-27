@@ -1,164 +1,202 @@
-<svg width="100%" viewBox="0 0 720 550" xmlns="http://www.w3.org/2000/svg" style="background-color: white;">
-<defs>
-  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </marker>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 776 665" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;max-width:900px;min-width:320px;background:#fff;" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arrow-sync" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 L 1 4 Z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-async" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 8 4 L 0 8 L 1 4 Z" fill="#9ca3af"/>
+    </marker>
+    <radialGradient id="glow-sync" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="glow-async" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#9ca3af;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#9ca3af;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
   <style>
-    text { font-family: system-ui, -apple-system, sans-serif; fill: #1a1a1a; }
-    .th { font-size: 14px; font-weight: 500; }
-    .ts { font-size: 12px; font-weight: 400; }
-    .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; }
-    .c-gray text { fill: #444441; }
-    .c-blue rect { fill: #E6F1FB; stroke: #185FA5; }
-    .c-blue text { fill: #0C447C; }
-    .c-teal rect { fill: #E1F5EE; stroke: #0F6E56; }
-    .c-teal text { fill: #085041; }
-    .c-purple rect { fill: #EEEDFE; stroke: #534AB7; }
-    .c-purple text { fill: #3C3489; }
-    .c-amber rect { fill: #FAEEDA; stroke: #854F0B; }
-    .c-amber text { fill: #633806; }
-    
-    /* 动画样式 */
-    .swim-lane {
-      opacity: 0;
-      animation: fadeIn 0.4s ease-out forwards;
-    }
-    .lane-header {
-      opacity: 0;
-      transform-origin: center;
-      animation: popIn 0.4s ease-out forwards;
-    }
-    .process-step {
-      opacity: 0;
-      transform-origin: center;
-      animation: popIn 0.4s ease-out forwards;
-    }
-    .connector-line {
-      opacity: 0;
-      animation: fadeIn 0.3s ease-out forwards;
-    }
-    .legend-item {
-      opacity: 0;
-      animation: fadeIn 0.3s ease-out forwards;
-    }
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1); }
-    }
+    .title-t{ font-size:14px; font-weight:600; fill:#334155; }
+    .stage-t{ font-size:10px; font-weight:500; fill:#64748B; }
+    .col-t{ font-size:10px; font-weight:500; }
+    .step-title{ font-size:9px; font-weight:500; fill:#334155; text-anchor:middle; }
+    .step-sub{ font-size:8px; fill:#94A3B8; text-anchor:middle; }
+    .conn-label{ font-size:9px; fill:#64748B; text-anchor:middle; }
+    @keyframes fi{ from{opacity:0;} to{opacity:1;} }
+    .anim{ opacity:0; animation:fi 0.5s ease-out forwards; }
+    .conn-line{ opacity:0; animation:fi 0.4s ease-out forwards; }
+    .conn-line-dash{ opacity:0; animation:fi 0.4s ease-out forwards, dashFlow 1s linear infinite; }
+    .conn-label-anim{ opacity:0; animation:fi 0.5s ease-out forwards; }
+    .flow-dot{ opacity:0; animation:fi 0.3s ease-out forwards, dotMove 2s ease-in-out infinite; }
+    @keyframes dotMove{ 0%{offset-distance:0%;} 100%{offset-distance:100%;} }
+    @keyframes dashFlow{ 0%{stroke-dashoffset:0;} 100%{stroke-dashoffset:-9;} }
   </style>
-</defs>
-
-<text class="th" x="360" y="24" text-anchor="middle" dominant-baseline="central" font-size="15">泳道图模板 - 采购审批流程</text>
-
-<!-- 泳道背景 -->
-<rect class="swim-lane" x="20" y="44" width="130" height="480" fill="#F8F7F4" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0s"/>
-<rect class="swim-lane" x="150" y="44" width="130" height="480" fill="#F0F7FF" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.1s"/>
-<rect class="swim-lane" x="280" y="44" width="130" height="480" fill="#F0FDF7" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.2s"/>
-<rect class="swim-lane" x="410" y="44" width="130" height="480" fill="#F5F3FF" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.3s"/>
-<rect class="swim-lane" x="540" y="44" width="140" height="480" fill="#FFFAF0" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.4s"/>
-
-<!-- 分隔线 -->
-<line class="connector-line" x1="150" y1="44" x2="150" y2="524" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.5s"/>
-<line class="connector-line" x1="280" y1="44" x2="280" y2="524" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.5s"/>
-<line class="connector-line" x1="410" y1="44" x2="410" y2="524" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.5s"/>
-<line class="connector-line" x1="540" y1="44" x2="540" y2="524" stroke="#E0DFDA" stroke-width="1" style="animation-delay: 0.5s"/>
-
-<!-- 泳道标题 -->
-<g class="c-gray lane-header" style="animation-delay: 0.6s"><rect x="35" y="54" width="100" height="32" rx="16" stroke-width="0.5"/>
-  <text class="ts" x="85" y="70" text-anchor="middle" dominant-baseline="central">👤 申请人</text></g>
-<g class="c-blue lane-header" style="animation-delay: 0.7s"><rect x="165" y="54" width="100" height="32" rx="16" stroke-width="0.5"/>
-  <text class="ts" x="215" y="70" text-anchor="middle" dominant-baseline="central">💻 采购系统</text></g>
-<g class="c-teal lane-header" style="animation-delay: 0.8s"><rect x="295" y="54" width="100" height="32" rx="16" stroke-width="0.5"/>
-  <text class="ts" x="345" y="70" text-anchor="middle" dominant-baseline="central">👔 部门经理</text></g>
-<g class="c-purple lane-header" style="animation-delay: 0.9s"><rect x="425" y="54" width="100" height="32" rx="16" stroke-width="0.5"/>
-  <text class="ts" x="475" y="70" text-anchor="middle" dominant-baseline="central">💼 财务部门</text></g>
-<g class="c-amber lane-header" style="animation-delay: 1s"><rect x="560" y="54" width="100" height="32" rx="16" stroke-width="0.5"/>
-  <text class="ts" x="610" y="70" text-anchor="middle" dominant-baseline="central">📦 供应商</text></g>
-
-<!-- 流程步骤：按流程顺序显示 -->
-<!-- 步骤1: 填写申请 -->
-<g class="c-gray process-step" style="animation-delay: 1.2s"><rect x="35" y="110" width="100" height="44" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="85" y="125" text-anchor="middle" dominant-baseline="central">填写采购申请</text>
-  <text class="ts" x="85" y="141" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#666">商品/数量/预算</text></g>
-
-<!-- 步骤2: 提交申请 -->
-<g class="c-gray process-step" style="animation-delay: 1.4s"><rect x="35" y="180" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="85" y="198" text-anchor="middle" dominant-baseline="central">提交申请</text></g>
-
-<!-- 步骤3: 系统校验 -->
-<g class="c-blue process-step" style="animation-delay: 1.6s"><rect x="165" y="176" width="100" height="44" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="215" y="191" text-anchor="middle" dominant-baseline="central">校验申请信息</text>
-  <text class="ts" x="215" y="207" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#666">格式/预算/库存</text></g>
-
-<!-- 步骤4: 部门经理审批 -->
-<g class="c-teal process-step" style="animation-delay: 1.8s"><rect x="295" y="176" width="100" height="44" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="345" y="191" text-anchor="middle" dominant-baseline="central">审批申请</text>
-  <text class="ts" x="345" y="207" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#666">业务合理性</text></g>
-
-<!-- 步骤5: 财务审批 -->
-<g class="c-purple process-step" style="animation-delay: 2s"><rect x="425" y="176" width="100" height="44" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="475" y="191" text-anchor="middle" dominant-baseline="central">预算审核</text>
-  <text class="ts" x="475" y="207" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#666">资金/成本</text></g>
-
-<!-- 步骤6: 生成采购单 -->
-<g class="c-blue process-step" style="animation-delay: 2.2s"><rect x="165" y="250" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="215" y="268" text-anchor="middle" dominant-baseline="central">生成采购订单</text></g>
-
-<!-- 步骤7: 发送给供应商 -->
-<g class="c-blue process-step" style="animation-delay: 2.4s"><rect x="165" y="310" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="215" y="328" text-anchor="middle" dominant-baseline="central">发送订单</text></g>
-
-<!-- 步骤8: 供应商确认 -->
-<g class="c-amber process-step" style="animation-delay: 2.6s"><rect x="560" y="306" width="100" height="44" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="610" y="321" text-anchor="middle" dominant-baseline="central">确认订单</text>
-  <text class="ts" x="610" y="337" text-anchor="middle" dominant-baseline="central" font-size="10" fill="#666">交期/价格确认</text></g>
-
-<!-- 步骤9: 发货 -->
-<g class="c-amber process-step" style="animation-delay: 2.8s"><rect x="560" y="380" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="610" y="398" text-anchor="middle" dominant-baseline="central">发货</text></g>
-
-<!-- 步骤10: 入库 -->
-<g class="c-blue process-step" style="animation-delay: 3s"><rect x="165" y="380" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="215" y="398" text-anchor="middle" dominant-baseline="central">入库验收</text></g>
-
-<!-- 步骤11: 通知申请人 -->
-<g class="c-blue process-step" style="animation-delay: 3.2s"><rect x="165" y="440" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="215" y="458" text-anchor="middle" dominant-baseline="central">通知申请人</text></g>
-
-<!-- 步骤12: 确认收货 -->
-<g class="c-gray process-step" style="animation-delay: 3.4s"><rect x="35" y="440" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="85" y="458" text-anchor="middle" dominant-baseline="central">确认收货</text></g>
-
-<!-- 拒绝分支 -->
-<g class="c-teal process-step" style="animation-delay: 2.1s"><rect x="295" y="250" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="345" y="268" text-anchor="middle" dominant-baseline="central">拒绝申请</text></g>
-<g class="c-gray process-step" style="animation-delay: 2.3s"><rect x="560" y="250" width="100" height="36" rx="6" stroke-width="0.8"/>
-  <text class="ts" x="610" y="268" text-anchor="middle" dominant-baseline="central">查看拒绝原因</text></g>
-
-<!-- 连接线 -->
-<line class="connector-line" x1="85" y1="154" x2="85" y2="180" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 1.3s"/>
-<line class="connector-line" x1="135" y1="198" x2="165" y2="198" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 1.5s"/>
-<line class="connector-line" x1="265" y1="198" x2="295" y2="198" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 1.7s"/>
-<line class="connector-line" x1="395" y1="198" x2="425" y2="198" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 1.9s"/>
-<line class="connector-line" x1="475" y1="220" x2="475" y2="240" stroke="#888780" stroke-width="1.5" style="animation-delay: 2.1s"/>
-<line class="connector-line" x1="475" y1="240" x2="215" y2="240" stroke="#888780" stroke-width="1.5" style="animation-delay: 2.1s"/>
-<line class="connector-line" x1="215" y1="240" x2="215" y2="250" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.1s"/>
-<line class="connector-line" x1="215" y1="286" x2="215" y2="310" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.3s"/>
-<line class="connector-line" x1="265" y1="328" x2="560" y2="328" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.5s"/>
-<line class="connector-line" x1="610" y1="350" x2="610" y2="380" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.7s"/>
-<line class="connector-line" x1="560" y1="398" x2="265" y2="398" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.9s"/>
-<line class="connector-line" x1="215" y1="416" x2="215" y2="440" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 3.1s"/>
-<line class="connector-line" x1="165" y1="458" x2="135" y2="458" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 3.3s"/>
-
-<!-- 拒绝分支连线 -->
-<line class="connector-line" x1="345" y1="220" x2="345" y2="250" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.15s"/>
-<line class="connector-line" x1="395" y1="268" x2="560" y2="268" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)" style="animation-delay: 2.25s"/>
-
-<!-- 图例 -->
-<line class="connector-line" x1="40" y1="535" x2="680" y2="535" stroke="#888780" stroke-width="0.5" stroke-dasharray="4 3" stroke-opacity="0.35" style="animation-delay: 3.5s"/>
-<text class="ts legend-item" x="360" y="550" text-anchor="middle" dominant-baseline="central" fill="#666" style="animation-delay: 3.6s">泳道图：按角色/系统划分，展示跨部门协作流程</text>
-
+  <rect width="776" height="665" fill="#ffffff"/>
+  <g transform="translate(20, 20)">
+  <rect x="1" y="1" width="734" height="623" fill="#ffffff" stroke="#000" stroke-width="2"/>
+  <!-- 横向泳道底纹 -->
+  <rect x="0" y="49" width="736" height="192" fill="#F8FAFC" stroke="none"/>
+  <rect x="0" y="241" width="736" height="256" fill="#F0F9FF" stroke="none"/>
+  <rect x="0" y="497" width="736" height="128" fill="#F8FAFC" stroke="none"/>
+  <!-- 标题栏 -->
+  <rect x="0" y="0" width="736" height="30" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="0.5"/>
+  <text x="368.0" y="15.0" text-anchor="middle" dominant-baseline="central" class="title-t anim" style="animation-delay:0.05s">远方仓配B2C订单履约流程</text>
+  <!-- 图例 -->
+  <line x1="702" y1="15.0" x2="726" y2="15.0" stroke="#3b82f6" stroke-width="1.3" marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.05s"/>
+  <circle r="2" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 702 15.0 L 726 15.0');animation-delay:0.35s,0.35s"/>
+  <text x="698" y="15.0" text-anchor="end" dominant-baseline="central" class="stage-t" fill="#64748B">同步</text>
+  <line x1="648" y1="15.0" x2="672" y2="15.0" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#arrow-async)" class="conn-line-dash" style="animation-delay:0.05s"/>
+  <text x="644" y="15.0" text-anchor="end" dominant-baseline="central" class="stage-t" fill="#64748B">异步</text>
+  <!-- 阶段标签 -->
+  <g class="anim" style="animation-delay:0.15000000000000002s">
+    <rect x="0" y="49" width="16" height="192" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="0.5"/>
+    <text x="8.0" y="234" text-anchor="start" dominant-baseline="central" transform="rotate(-90,8.0,234)" class="col-t" fill="#64748B">订单阶段</text>
+  </g>
+  <g class="anim" style="animation-delay:0.2s">
+    <rect x="0" y="241" width="16" height="256" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="0.5"/>
+    <text x="8.0" y="490" text-anchor="start" dominant-baseline="central" transform="rotate(-90,8.0,490)" class="col-t" fill="#64748B">仓储作业阶段</text>
+  </g>
+  <g class="anim" style="animation-delay:0.25s">
+    <rect x="0" y="497" width="16" height="128" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="0.5"/>
+    <text x="8.0" y="618" text-anchor="start" dominant-baseline="central" transform="rotate(-90,8.0,618)" class="col-t" fill="#64748B">配送签收阶段</text>
+  </g>
+  <!-- 列头 -->
+  <g class="anim" style="animation-delay:0.13s">
+    <rect x="0" y="30" width="160" height="19" fill="#EFF6FF" stroke="#93C5FD" stroke-width="0.5"/>
+    <text x="88.0" y="39.5" text-anchor="middle" dominant-baseline="central" class="col-t" fill="#1E40AF">消费者/电商平台</text>
+  </g>
+  <g class="anim" style="animation-delay:0.18s">
+    <rect x="160" y="30" width="144" height="19" fill="#ECFDF5" stroke="#6EE7B7" stroke-width="0.5"/>
+    <text x="232.0" y="39.5" text-anchor="middle" dominant-baseline="central" class="col-t" fill="#065F46">ERP</text>
+  </g>
+  <g class="anim" style="animation-delay:0.23000000000000004s">
+    <rect x="304" y="30" width="144" height="19" fill="#FFFBEB" stroke="#FCD34D" stroke-width="0.5"/>
+    <text x="376.0" y="39.5" text-anchor="middle" dominant-baseline="central" class="col-t" fill="#92400E">WMS</text>
+  </g>
+  <g class="anim" style="animation-delay:0.28s">
+    <rect x="448" y="30" width="144" height="19" fill="#F5F3FF" stroke="#C4B5FD" stroke-width="0.5"/>
+    <text x="520.0" y="39.5" text-anchor="middle" dominant-baseline="central" class="col-t" fill="#5B21B6">仓库作业</text>
+  </g>
+  <g class="anim" style="animation-delay:0.33s">
+    <rect x="592" y="30" width="144" height="19" fill="#FFF1F2" stroke="#FDA4AF" stroke-width="0.5"/>
+    <text x="664.0" y="39.5" text-anchor="middle" dominant-baseline="central" class="col-t" fill="#9F1239">快递</text>
+  </g>
+  <!-- 列分隔线 -->
+  <rect x="160" y="49" width="1" height="576" fill="#CBD5E1"/>
+  <rect x="304" y="49" width="1" height="576" fill="#CBD5E1"/>
+  <rect x="448" y="49" width="1" height="576" fill="#CBD5E1"/>
+  <rect x="592" y="49" width="1" height="576" fill="#CBD5E1"/>
+  <!-- 步骤卡片 -->
+  <g class="anim" style="animation-delay:0.2s">
+    <rect x="28.0" y="61" width="120" height="40" rx="4" fill="#ffffff" stroke="#93C5FD" stroke-width="1"/>
+    <text x="88.0" y="76" dominant-baseline="central" class="step-title">消费者下单</text>
+    <text x="88.0" y="89" dominant-baseline="central" class="step-sub">选择商品并提交订单</text>
+  </g>
+  <g class="anim" style="animation-delay:0.25s">
+    <rect x="28.0" y="125" width="120" height="40" rx="4" fill="#ffffff" stroke="#93C5FD" stroke-width="1"/>
+    <text x="88.0" y="140" dominant-baseline="central" class="step-title">平台推送订单</text>
+    <text x="88.0" y="153" dominant-baseline="central" class="step-sub">电商平台推送订单至ERP</text>
+  </g>
+  <g class="anim" style="animation-delay:0.30000000000000004s">
+    <rect x="172.0" y="61" width="120" height="40" rx="4" fill="#ffffff" stroke="#6EE7B7" stroke-width="1"/>
+    <text x="232.0" y="76" dominant-baseline="central" class="step-title">订单审核</text>
+    <text x="232.0" y="89" dominant-baseline="central" class="step-sub">人工或智能审核订单信息</text>
+  </g>
+  <g class="anim" style="animation-delay:0.35000000000000003s">
+    <rect x="172.0" y="125" width="120" height="40" rx="4" fill="#ffffff" stroke="#6EE7B7" stroke-width="1"/>
+    <text x="232.0" y="140" dominant-baseline="central" class="step-title">选仓锁库存</text>
+    <text x="232.0" y="153" dominant-baseline="central" class="step-sub">查询库存→四步择优→FEFO锁定</text>
+  </g>
+  <g class="anim" style="animation-delay:0.4s">
+    <rect x="172.0" y="189" width="120" height="40" rx="4" fill="#ffffff" stroke="#6EE7B7" stroke-width="1"/>
+    <text x="232.0" y="204" dominant-baseline="central" class="step-title">生成出库单</text>
+    <text x="232.0" y="217" dominant-baseline="central" class="step-sub">推送出库指令至WMS</text>
+  </g>
+  <g class="anim" style="animation-delay:0.45s">
+    <rect x="316.0" y="253" width="120" height="40" rx="4" fill="#ffffff" stroke="#FCD34D" stroke-width="1"/>
+    <text x="376.0" y="268" dominant-baseline="central" class="step-title">接收出库单</text>
+    <text x="376.0" y="281" dominant-baseline="central" class="step-sub">WMS接收ERP出库指令</text>
+  </g>
+  <g class="anim" style="animation-delay:0.5s">
+    <rect x="316.0" y="317" width="120" height="40" rx="4" fill="#ffffff" stroke="#FCD34D" stroke-width="1"/>
+    <text x="376.0" y="332" dominant-baseline="central" class="step-title">生成拣货波次</text>
+    <text x="376.0" y="345" dominant-baseline="central" class="step-sub">30分钟时间窗口合批</text>
+  </g>
+  <g class="anim" style="animation-delay:0.55s">
+    <rect x="460.0" y="253" width="120" height="40" rx="4" fill="#ffffff" stroke="#C4B5FD" stroke-width="1"/>
+    <text x="520.0" y="268" dominant-baseline="central" class="step-title">FEFO拣货</text>
+    <text x="520.0" y="281" dominant-baseline="central" class="step-sub">按先到期先出规则拣货</text>
+  </g>
+  <g class="anim" style="animation-delay:0.6000000000000001s">
+    <rect x="460.0" y="317" width="120" height="40" rx="4" fill="#ffffff" stroke="#C4B5FD" stroke-width="1"/>
+    <text x="520.0" y="332" dominant-baseline="central" class="step-title">复核验货</text>
+    <text x="520.0" y="345" dominant-baseline="central" class="step-sub">验货确认无误</text>
+  </g>
+  <g class="anim" style="animation-delay:0.65s">
+    <rect x="460.0" y="381" width="120" height="40" rx="4" fill="#ffffff" stroke="#C4B5FD" stroke-width="1"/>
+    <text x="520.0" y="396" dominant-baseline="central" class="step-title">打包称重</text>
+    <text x="520.0" y="409" dominant-baseline="central" class="step-sub">封箱称重，库存正式扣减</text>
+  </g>
+  <g class="anim" style="animation-delay:0.7s">
+    <rect x="460.0" y="445" width="120" height="40" rx="4" fill="#ffffff" stroke="#C4B5FD" stroke-width="1"/>
+    <text x="520.0" y="460" dominant-baseline="central" class="step-title">打印面单交接</text>
+    <text x="520.0" y="473" dominant-baseline="central" class="step-sub">打印快递面单交给快递</text>
+  </g>
+  <g class="anim" style="animation-delay:0.75s">
+    <rect x="316.0" y="381" width="120" height="40" rx="4" fill="#ffffff" stroke="#FCD34D" stroke-width="1"/>
+    <text x="376.0" y="396" dominant-baseline="central" class="step-title">回传物流单号</text>
+    <text x="376.0" y="409" dominant-baseline="central" class="step-sub">WMS→ERP→平台更新已发货</text>
+  </g>
+  <g class="anim" style="animation-delay:0.8s">
+    <rect x="604.0" y="509" width="120" height="40" rx="4" fill="#ffffff" stroke="#FDA4AF" stroke-width="1"/>
+    <text x="664.0" y="524" dominant-baseline="central" class="step-title">快递揽收配送</text>
+    <text x="664.0" y="537" dominant-baseline="central" class="step-sub">快递取件并配送</text>
+  </g>
+  <g class="anim" style="animation-delay:0.8500000000000001s">
+    <rect x="28.0" y="509" width="120" height="40" rx="4" fill="#ffffff" stroke="#93C5FD" stroke-width="1"/>
+    <text x="88.0" y="524" dominant-baseline="central" class="step-title">消费者签收</text>
+    <text x="88.0" y="537" dominant-baseline="central" class="step-sub">消费者确认收货</text>
+  </g>
+  <g class="anim" style="animation-delay:0.9000000000000001s">
+    <rect x="604.0" y="573" width="120" height="40" rx="4" fill="#ffffff" stroke="#FDA4AF" stroke-width="1"/>
+    <text x="664.0" y="588" dominant-baseline="central" class="step-title">签收状态回调</text>
+    <text x="664.0" y="601" dominant-baseline="central" class="step-sub">快递回传签收状态</text>
+  </g>
+  <g class="anim" style="animation-delay:0.95s">
+    <rect x="172.0" y="509" width="120" height="40" rx="4" fill="#ffffff" stroke="#6EE7B7" stroke-width="1"/>
+    <text x="232.0" y="524" dominant-baseline="central" class="step-title">更新订单已完成</text>
+    <text x="232.0" y="537" dominant-baseline="central" class="step-sub">ERP通知平台订单完成</text>
+  </g>
+  <!-- 连线 -->
+  <path d="M 88.0 101 L 88.0 125" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.4s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 88.0 101 L 88.0 125');animation-delay:0.7s,0.7s"/>
+  <path d="M 148.0 145.0 L 154.0 145.0 Q 160.0 145.0 160.0 139.0 L 160.0 121.0 Q 160.0 113 168.0 113.0 L 226.0 113.0 Q 232.0 113 232.0 107.0 L 232.0 101" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.45s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 148.0 145.0 L 154.0 145.0 Q 160.0 145.0 160.0 139.0 L 160.0 121.0 Q 160.0 113 168.0 113.0 L 226.0 113.0 Q 232.0 113 232.0 107.0 L 232.0 101');animation-delay:0.75s,0.75s"/>
+  <path d="M 232.0 101 L 232.0 125" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.5s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 232.0 101 L 232.0 125');animation-delay:0.8s,0.8s"/>
+  <path d="M 232.0 165 L 232.0 189" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.55s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 232.0 165 L 232.0 189');animation-delay:0.85s,0.85s"/>
+  <path d="M 292.0 209.0 L 368.0 209.0 Q 376.0 209.0 376.0 217.0 L 376.0 253" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.6s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 292.0 209.0 L 368.0 209.0 Q 376.0 209.0 376.0 217.0 L 376.0 253');animation-delay:0.9s,0.9s"/>
+  <path d="M 376.0 293 L 376.0 317" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.65s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 376.0 293 L 376.0 317');animation-delay:0.95s,0.95s"/>
+  <path d="M 436.0 337.0 L 442.0 337.0 Q 448.0 337.0 448.0 331.0 L 448.0 313.0 Q 448.0 305 456.0 305.0 L 514.0 305.0 Q 520.0 305 520.0 299.0 L 520.0 293" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.7s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 436.0 337.0 L 442.0 337.0 Q 448.0 337.0 448.0 331.0 L 448.0 313.0 Q 448.0 305 456.0 305.0 L 514.0 305.0 Q 520.0 305 520.0 299.0 L 520.0 293');animation-delay:1.0s,1.0s"/>
+  <path d="M 520.0 293 L 520.0 317" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.75s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 520.0 293 L 520.0 317');animation-delay:1.05s,1.05s"/>
+  <path d="M 520.0 357 L 520.0 381" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.8s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 520.0 357 L 520.0 381');animation-delay:1.1s,1.1s"/>
+  <path d="M 520.0 421 L 520.0 445" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.85s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 520.0 421 L 520.0 445');animation-delay:1.15s,1.15s"/>
+  <path d="M 460.0 465.0 L 384.0 465.0 Q 376.0 465.0 376.0 457.0 L 376.0 421" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:0.9s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 460.0 465.0 L 384.0 465.0 Q 376.0 465.0 376.0 457.0 L 376.0 421');animation-delay:1.2s,1.2s"/>
+  <path d="M 436.0 401.0 L 442.0 401.0 Q 448.0 401.0 448.0 407.0 L 448.0 489.0 Q 448.0 497 456.0 497.0 L 658.0 497.0 Q 664.0 497 664.0 503.0 L 664.0 509" fill="none" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#arrow-async)" class="conn-line-dash" style="animation-delay:0.95s"/>
+  <text x="508.0" y="500.0" class="conn-label conn-label-anim" fill="#9ca3af" style="animation-delay:1.05s">已发货</text>
+  <path d="M 604.0 529.0 L 598.0 529.0 Q 592.0 529.0 592.0 523.0 L 592.0 505.0 Q 592.0 497 584.0 497.0 L 94.0 497.0 Q 88.0 497 88.0 503.0 L 88.0 509" fill="none" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#arrow-async)" class="conn-line-dash" style="animation-delay:1.0s"/>
+  <text x="356.0" y="500.0" class="conn-label conn-label-anim" fill="#9ca3af" style="animation-delay:1.1s">快递在途</text>
+  <path d="M 148.0 529.0 L 154.0 529.0 Q 160.0 529.0 160.0 535.0 L 160.0 553.0 Q 160.0 561 168.0 561.0 L 658.0 561.0 Q 664.0 561 664.0 567.0 L 664.0 573" fill="none" stroke="#3b82f6" stroke-width="1.3"  marker-end="url(#arrow-sync)" class="conn-line" style="animation-delay:1.05s"/>
+  <circle r="3" fill="url(#glow-sync)" class="flow-dot" style="offset-path:path('M 148.0 529.0 L 154.0 529.0 Q 160.0 529.0 160.0 535.0 L 160.0 553.0 Q 160.0 561 168.0 561.0 L 658.0 561.0 Q 664.0 561 664.0 567.0 L 664.0 573');animation-delay:1.35s,1.35s"/>
+  <path d="M 604.0 593.0 L 240.0 593.0 Q 232.0 593.0 232.0 585.0 L 232.0 549" fill="none" stroke="#9ca3af" stroke-width="1.3" stroke-dasharray="6 3" marker-end="url(#arrow-async)" class="conn-line-dash" style="animation-delay:1.1s"/>
+  <text x="396.0" y="596.0" class="conn-label conn-label-anim" fill="#9ca3af" style="animation-delay:1.2000000000000002s">已签收</text>
+  </g>
 </svg>
